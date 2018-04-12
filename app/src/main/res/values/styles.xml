@@ -10,4 +10,9 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="MyFloatingButtonLabelStyle">
+        <item name="android:background">@drawable/floating_button_label_background</item>
+        <item name="android:textColor">#fff</item>
+    </style>
+
 </resources>

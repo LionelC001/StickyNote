@@ -1,18 +1,23 @@
 package com.lionel.stickynote;
 
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
+
+import com.getbase.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 
@@ -68,6 +73,9 @@ public class PaperContentActivity extends AppCompatActivity {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);*/
 // finally change the color
         window.setStatusBarColor(Color.parseColor("#55550000"));
+
+        ((FloatingActionButton)findViewById(R.id.btnAddItem))
+                .setColorNormal(Color.parseColor("#e6593a"));
     }
 
     @Override
@@ -103,14 +111,34 @@ public class PaperContentActivity extends AppCompatActivity {
 
 
     private void setupRecyclerView() {
-        RecyclerView mContentListView = findViewById(R.id.recyclerContentList);
+        RecyclerView mRecyclerViewContentList = findViewById(R.id.recyclerContentList);
         mRecyclerAdapter = new RecyclerContentListAdapter(mContentItemList);
-        mContentListView.setAdapter(mRecyclerAdapter);
-        mContentListView.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerViewContentList.setAdapter(mRecyclerAdapter);
+        mRecyclerViewContentList.setLayoutManager(new LinearLayoutManager(this));
+
+        // let list item can swipe and drag
+        SimpleItemTouchHelper simpleItemTouchHelper = new SimpleItemTouchHelper(mRecyclerAdapter);
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchHelper);
+        itemTouchHelper.attachToRecyclerView(mRecyclerViewContentList);
     }
 
     public void addItem(View view) {
         mContentItemList.add("");
         mRecyclerAdapter.notifyDataSetChanged();
+    }
+
+    public void clear(View view) {
+        new AlertDialog.Builder(this)
+                .setMessage("Are you sure for clear all items?")
+                .setCancelable(true)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mContentItemList.clear();
+                        mRecyclerAdapter.notifyDataSetChanged();
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 }

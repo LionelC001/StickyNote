@@ -8,7 +8,6 @@
     android:focusableInTouchMode="true"
     tools:context=".PaperContentActivity">
 
-
     <LinearLayout
         android:id="@+id/linLay"
         android:layout_width="match_parent"
@@ -36,7 +35,6 @@
                 android:textStyle="bold" />
         </android.support.v7.widget.Toolbar>
 
-
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerContentList"
             android:layout_width="match_parent"
@@ -44,20 +42,31 @@
             android:layout_margin="4dp" />
     </LinearLayout>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btnAddItem"
+    <com.getbase.floatingactionbutton.FloatingActionsMenu
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="25dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:onClick="addItem"
-        android:src="@drawable/plus"
-        app:backgroundTint="#e6593a"
-        app:elevation="6dp"
-        app:fabSize="mini"
+        android:layout_margin="15dp"
+        app:fab_labelStyle="@style/MyFloatingButtonLabelStyle"
         app:layout_anchor="@id/linLay"
-        app:layout_anchorGravity="right|bottom"
-        app:rippleColor="#ffffff" />
+        app:layout_anchorGravity="bottom|right">
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnClear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="clear"
+            app:fab_icon="@drawable/trashcan"
+            app:fab_size="mini"
+            app:fab_title="Clear All" />
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnAddItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="addItem"
+            app:fab_icon="@drawable/plus"
+            app:fab_size="mini"
+            app:fab_title="Add New Item" />
+    </com.getbase.floatingactionbutton.FloatingActionsMenu>
 
 </android.support.design.widget.CoordinatorLayout>
