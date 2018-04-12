@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    tools:context=".PaperContentActivity">
+
+
+    <LinearLayout
+        android:id="@+id/linLay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            android:elevation="8dp"
+            app:contentInsetEnd="0dp"
+            app:contentInsetStart="0dp">
+
+            <EditText
+                android:id="@+id/edtContentTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@android:color/transparent"
+                android:hint="What's the title?"
+                android:inputType="text"
+                android:maxLines="1"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+        </android.support.v7.widget.Toolbar>
+
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerContentList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="4dp" />
+    </LinearLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btnAddItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="25dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="addItem"
+        android:src="@drawable/plus"
+        app:backgroundTint="#e6593a"
+        app:elevation="6dp"
+        app:fabSize="mini"
+        app:layout_anchor="@id/linLay"
+        app:layout_anchorGravity="right|bottom"
+        app:rippleColor="#ffffff" />
+
+</android.support.design.widget.CoordinatorLayout>

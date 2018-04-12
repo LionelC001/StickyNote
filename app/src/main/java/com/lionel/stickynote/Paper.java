@@ -2,6 +2,7 @@ package com.lionel.stickynote;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
@@ -80,6 +81,8 @@ public class Paper extends FrameLayout {
             // view's X as touched
             beforeViewX = getX();
             beforeViewY = getY();
+
+            goToContent();
             return true;
         }
 
@@ -112,6 +115,10 @@ public class Paper extends FrameLayout {
                     .setCancelable(true)
                     .show();
         }
+    }
+
+    private void goToContent() {
+
     }
 
     private void moveWithinBoundary(float x, float y) {
