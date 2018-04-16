@@ -18,20 +18,23 @@ import android.view.Window;
 import android.widget.EditText;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 
 public class PaperContentActivity extends AppCompatActivity {
-
+    private ArrayList<PaperProperty> mPaperPropertyArrayList;
     private ArrayList<String> mContentItemList;
     private EditText mEdtContentTitle;
     private RecyclerContentListAdapter mRecyclerAdapter;
+    private PaperProperty mPaperProperty;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_paper_content);
-
+        mPaperProperty = (PaperProperty) getIntent().getExtras().getSerializable("PaperProperty");
+        mPaperPropertyArrayList = (ArrayList<PaperProperty>) getIntent().getExtras().getSerializable("PaperPropertyList");
         mContentItemList = new ArrayList<>();
         mEdtContentTitle = findViewById(R.id.edtContentTitle);
         setupToolbar();
@@ -46,7 +49,7 @@ public class PaperContentActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_item,menu);
+        getMenuInflater().inflate(R.menu.menu_item, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -54,16 +57,15 @@ public class PaperContentActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                Log.d("<<<", "homeAdUp");
+                finish();
                 break;
             case R.id.menuItemColor:
-                Log.d("<<<", "Palette");
-
                 setStatusBarColor();
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
+
 
     private void setStatusBarColor() {
         Window window = getWindow();
@@ -74,19 +76,19 @@ public class PaperContentActivity extends AppCompatActivity {
 // finally change the color
         window.setStatusBarColor(Color.parseColor("#55550000"));
 
-        ((FloatingActionButton)findViewById(R.id.btnAddItem))
+        ((FloatingActionButton) findViewById(R.id.btnAddItem))
                 .setColorNormal(Color.parseColor("#e6593a"));
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         // load array list form SharedPreferences
-        SharedPreferences sharedPreferences = getSharedPreferences("PaperContentData", MODE_PRIVATE);
-        if (sharedPreferences.getString("item0", null) != null) {
+        SharedPreferences sharedPreferences = getSharedPreferences("PaperContentData" + mPaperProperty.getPaperId(), MODE_PRIVATE);
+        if (sharedPreferences.getString("Item0", null) != null) {
             mContentItemList.clear();
             for (int i = 0; i < sharedPreferences.getInt("size", 0); i++) {
-                mContentItemList.add(sharedPreferences.getString("item" + i, null));
+                mContentItemList.add(sharedPreferences.getString("Item" + i, null));
             }
         }
         // load title form SharedPreferences
@@ -97,15 +99,50 @@ public class PaperContentActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        // save array list to SharedPreferences
-        SharedPreferences.Editor sharedPreferences =
-                getSharedPreferences("PaperContentData", MODE_PRIVATE).edit();
-        sharedPreferences.putInt("size", mContentItemList.size());
+        saveContentToSP();
+        savePropertyToSP();
+    }
+
+    private void saveContentToSP() {
+        // save array list into ContentSharedPreferences
+        SharedPreferences.Editor spContent =
+                getSharedPreferences("PaperContentData" + mPaperProperty.getPaperId(), MODE_PRIVATE).edit();
+        spContent.putInt("size", mContentItemList.size());
         for (int i = 0; i < mContentItemList.size(); i++) {
-            sharedPreferences.putString("item" + i, mContentItemList.get(i));
+            spContent.putString("Item" + i, mContentItemList.get(i));
         }
         //save title to SharedPreferences
-        sharedPreferences.putString("title", mEdtContentTitle.getText().toString());
+        spContent.putString("title", mEdtContentTitle.getText().toString());
+        spContent.apply();
+    }
+
+    private void savePropertyToSP() {
+        // save Title and the top four items to the specific PaperProperty
+        // and form the PropertyArrayList with the PaperProperty
+        String[] contentTop4 = new String[4];
+        for (int i = 0; i < mContentItemList.size(); i++) {
+            if (!mContentItemList.get(i).equals("")) {
+                contentTop4[i] = (i+1) + ". " + mContentItemList.get(i);
+            }
+            if(i==3) break;
+        }
+
+        // update PropertyArrayList
+        for (PaperProperty pp : mPaperPropertyArrayList) {
+            if (pp.getPaperId() == mPaperProperty.getPaperId()) {
+                int ppIndex = mPaperPropertyArrayList.indexOf(pp);
+                mPaperProperty.setTitle(mEdtContentTitle.getText().toString());
+                mPaperProperty.setContent(contentTop4);
+                mPaperPropertyArrayList.set(ppIndex, mPaperProperty);
+                break;
+            }
+        }
+        // save this PropertyArrayList into PropertySharedPreferences
+        SharedPreferences.Editor sharedPreferences =
+                getSharedPreferences("PaperPropertyData", MODE_PRIVATE).edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(mPaperPropertyArrayList);
+        sharedPreferences.putString("PaperProperty", json);
         sharedPreferences.apply();
     }
 
@@ -121,6 +158,7 @@ public class PaperContentActivity extends AppCompatActivity {
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchHelper);
         itemTouchHelper.attachToRecyclerView(mRecyclerViewContentList);
     }
+
 
     public void addItem(View view) {
         mContentItemList.add("");

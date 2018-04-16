@@ -26,8 +26,12 @@ public class Paper extends FrameLayout {
     private GestureDetector gestureDetector;
     private PaperProperty mPP;
 
-    public interface DeletePaperInterface {
+    interface DeletePaperInterface {
         void deletePaper(Paper paper, PaperProperty pp);
+    }
+
+    public interface OpenPaperContent {
+        void openContent(PaperProperty pp);
     }
 
 
@@ -114,6 +118,12 @@ public class Paper extends FrameLayout {
                     .setNegativeButton("Cancel", null)
                     .setCancelable(true)
                     .show();
+        }
+
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            ((OpenPaperContent) mContext).openContent(mPP);
+            return true;
         }
     }
 
