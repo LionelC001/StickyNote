@@ -15,6 +15,8 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
+import static com.lionel.stickynote.PaperContentActivity.DB_NAME;
+
 
 public class MainActivity extends AppCompatActivity implements Paper.DeletePaperInterface, Paper.OpenPaperContent {
     private ConstraintLayout mRootView;
@@ -44,6 +46,10 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     public void deletePaper(Paper paper, PaperProperty pp) {
         mRootView.removeView(paper);
         mPaperPropertyArrayList.remove(pp); // delete this paper's property from the list array
+        PaperContentDbHelper paperContentDbHelper = new PaperContentDbHelper(getApplicationContext(),
+                DB_NAME, null, 1, "Paper"+pp.getPaperId());
+        paperContentDbHelper.deleteTable();
+        paperContentDbHelper.close();
     }
 
     @Override

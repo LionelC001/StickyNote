@@ -1,7 +1,9 @@
 package com.lionel.stickynote;
 
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -19,15 +21,22 @@ import android.widget.EditText;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class PaperContentActivity extends AppCompatActivity {
+    public final static String DB_NAME = "PaperContent.db";
+
+    private PaperProperty mPaperProperty;
     private ArrayList<PaperProperty> mPaperPropertyArrayList;
     private ArrayList<String> mContentItemList;
     private EditText mEdtContentTitle;
     private RecyclerContentListAdapter mRecyclerAdapter;
-    private PaperProperty mPaperProperty;
+    private String table_name;
+    private Cursor mCursor;
+    private PaperContentDbHelper mPaperContentDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +46,16 @@ public class PaperContentActivity extends AppCompatActivity {
         mPaperPropertyArrayList = (ArrayList<PaperProperty>) getIntent().getExtras().getSerializable("PaperPropertyList");
         mContentItemList = new ArrayList<>();
         mEdtContentTitle = findViewById(R.id.edtContentTitle);
+
         setupToolbar();
+        setupDB();
+    }
+
+    private void setupDB() {
+        table_name = "Paper" + mPaperProperty.getPaperId();
+        mPaperContentDbHelper = new PaperContentDbHelper(getApplicationContext(),
+                DB_NAME, null, 1, table_name);
+        mPaperContentDbHelper.createTable();
     }
 
     private void setupToolbar() {
@@ -83,37 +101,49 @@ public class PaperContentActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // load array list form SharedPreferences
-        SharedPreferences sharedPreferences = getSharedPreferences("PaperContentData" + mPaperProperty.getPaperId(), MODE_PRIVATE);
-        if (sharedPreferences.getString("Item0", null) != null) {
-            mContentItemList.clear();
-            for (int i = 0; i < sharedPreferences.getInt("size", 0); i++) {
-                mContentItemList.add(sharedPreferences.getString("Item" + i, null));
+        mCursor = mPaperContentDbHelper.query(table_name, null, null, null, null, null, null);
+        if (mCursor == null) return;
+        if (mCursor.getCount() > 0) {
+            mCursor.moveToFirst();
+            // load array list form SQLite
+            String json = mCursor.getString(mCursor.getColumnIndex("item"));
+            if (json != null) {
+                Gson gson = new Gson();
+                Type type = new TypeToken<ArrayList<String>>() {
+                }.getType();
+                mContentItemList = gson.fromJson(json, type);
             }
+            // load title form SQLite
+            mEdtContentTitle.setText(mCursor.getString(1));
         }
-        // load title form SharedPreferences
-        mEdtContentTitle.setText(sharedPreferences.getString("title", null));
         setupRecyclerView();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        saveContentToSP();
+        saveContentToSQLite();
         savePropertyToSP();
     }
 
-    private void saveContentToSP() {
-        // save array list into ContentSharedPreferences
-        SharedPreferences.Editor spContent =
-                getSharedPreferences("PaperContentData" + mPaperProperty.getPaperId(), MODE_PRIVATE).edit();
-        spContent.putInt("size", mContentItemList.size());
-        for (int i = 0; i < mContentItemList.size(); i++) {
-            spContent.putString("Item" + i, mContentItemList.get(i));
-        }
-        //save title to SharedPreferences
-        spContent.putString("title", mEdtContentTitle.getText().toString());
-        spContent.apply();
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mCursor.close();
+        mPaperContentDbHelper.close();
+    }
+
+    private void saveContentToSQLite() {
+        // save title and content into SQLite
+        Gson gson = new Gson();
+        String json = gson.toJson(mContentItemList);
+
+        ContentValues cv = new ContentValues();
+        cv.put("title", mEdtContentTitle.getText().toString());
+        cv.put("item", json);
+        // check whether it should insert or not
+        if (mCursor.getCount() == 0) mPaperContentDbHelper.insert(table_name, null, cv);
+        else mPaperContentDbHelper.update(table_name, cv, "_id=1", null);
     }
 
     private void savePropertyToSP() {
@@ -122,9 +152,9 @@ public class PaperContentActivity extends AppCompatActivity {
         String[] contentTop4 = new String[4];
         for (int i = 0; i < mContentItemList.size(); i++) {
             if (!mContentItemList.get(i).equals("")) {
-                contentTop4[i] = (i+1) + ". " + mContentItemList.get(i);
+                contentTop4[i] = (i + 1) + ". " + mContentItemList.get(i);
             }
-            if(i==3) break;
+            if (i == 3) break;
         }
 
         // update PropertyArrayList
@@ -145,7 +175,6 @@ public class PaperContentActivity extends AppCompatActivity {
         sharedPreferences.putString("PaperProperty", json);
         sharedPreferences.apply();
     }
-
 
     private void setupRecyclerView() {
         RecyclerView mRecyclerViewContentList = findViewById(R.id.recyclerContentList);
