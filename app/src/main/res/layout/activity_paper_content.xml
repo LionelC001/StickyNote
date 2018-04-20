@@ -14,26 +14,17 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
+        <EditText
+            android:id="@+id/edtContentTitle"
             android:layout_width="match_parent"
-            android:layout_height="?android:attr/actionBarSize"
-            android:background="@color/colorPrimary"
-            android:elevation="8dp"
-            app:contentInsetEnd="0dp"
-            app:contentInsetStart="0dp">
-
-            <EditText
-                android:id="@+id/edtContentTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@android:color/transparent"
-                android:hint="What's the title?"
-                android:inputType="text"
-                android:maxLines="1"
-                android:textSize="25sp"
-                android:textStyle="bold" />
-        </android.support.v7.widget.Toolbar>
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:backgroundTint="@android:color/transparent"
+            android:hint="What's the title?"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textSize="30sp"
+            android:textStyle="bold" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerContentList"
@@ -49,6 +40,15 @@
         app:fab_labelStyle="@style/MyFloatingButtonLabelStyle"
         app:layout_anchor="@id/linLay"
         app:layout_anchorGravity="bottom|right">
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnChangeColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="changeColorTheme"
+            app:fab_icon="@drawable/palette"
+            app:fab_size="mini"
+            app:fab_title="Change Color" />
 
         <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnClear"

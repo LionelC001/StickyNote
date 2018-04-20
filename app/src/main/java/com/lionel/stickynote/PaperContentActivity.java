@@ -12,7 +12,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -47,7 +46,6 @@ public class PaperContentActivity extends AppCompatActivity {
         mContentItemList = new ArrayList<>();
         mEdtContentTitle = findViewById(R.id.edtContentTitle);
 
-        setupToolbar();
         setupDB();
     }
 
@@ -58,44 +56,16 @@ public class PaperContentActivity extends AppCompatActivity {
         mPaperContentDbHelper.createTable();
     }
 
-    private void setupToolbar() {
-        Toolbar mToolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
-        getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    }
+    private void setupRecyclerView() {
+        RecyclerView mRecyclerViewContentList = findViewById(R.id.recyclerContentList);
+        mRecyclerAdapter = new RecyclerContentListAdapter(mContentItemList);
+        mRecyclerViewContentList.setAdapter(mRecyclerAdapter);
+        mRecyclerViewContentList.setLayoutManager(new LinearLayoutManager(this));
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_item, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                finish();
-                break;
-            case R.id.menuItemColor:
-                setStatusBarColor();
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-
-    private void setStatusBarColor() {
-        Window window = getWindow();
-// clear FLAG_TRANSLUCENT_STATUS flag:
-      /*  window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-// add FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS flag to the window
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);*/
-// finally change the color
-        window.setStatusBarColor(Color.parseColor("#55550000"));
-
-        ((FloatingActionButton) findViewById(R.id.btnAddItem))
-                .setColorNormal(Color.parseColor("#e6593a"));
+        // let list item can swipe and drag
+        SimpleItemTouchHelper simpleItemTouchHelper = new SimpleItemTouchHelper(mRecyclerAdapter);
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchHelper);
+        itemTouchHelper.attachToRecyclerView(mRecyclerViewContentList);
     }
 
     @Override
@@ -153,6 +123,8 @@ public class PaperContentActivity extends AppCompatActivity {
         for (int i = 0; i < mContentItemList.size(); i++) {
             if (!mContentItemList.get(i).equals("")) {
                 contentTop4[i] = (i + 1) + ". " + mContentItemList.get(i);
+            } else {
+                contentTop4[i] = (i + 1) + ". ";
             }
             if (i == 3) break;
         }
@@ -176,18 +148,6 @@ public class PaperContentActivity extends AppCompatActivity {
         sharedPreferences.apply();
     }
 
-    private void setupRecyclerView() {
-        RecyclerView mRecyclerViewContentList = findViewById(R.id.recyclerContentList);
-        mRecyclerAdapter = new RecyclerContentListAdapter(mContentItemList);
-        mRecyclerViewContentList.setAdapter(mRecyclerAdapter);
-        mRecyclerViewContentList.setLayoutManager(new LinearLayoutManager(this));
-
-        // let list item can swipe and drag
-        SimpleItemTouchHelper simpleItemTouchHelper = new SimpleItemTouchHelper(mRecyclerAdapter);
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchHelper);
-        itemTouchHelper.attachToRecyclerView(mRecyclerViewContentList);
-    }
-
 
     public void addItem(View view) {
         mContentItemList.add("");
@@ -207,5 +167,16 @@ public class PaperContentActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("No", null)
                 .show();
+    }
+
+    public void changeColorTheme(View view) {
+// clear FLAG_TRANSLUCENT_STATUS flag:
+      /*  window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+// add FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS flag to the window
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);*/
+// finally change the color
+        getWindow().setStatusBarColor(Color.parseColor("#55550000"));
+        ((FloatingActionButton) findViewById(R.id.btnAddItem))
+                .setColorNormal(Color.parseColor("#e6593a"));
     }
 }

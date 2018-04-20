@@ -17,7 +17,7 @@ public class PaperContentDbHelper extends SQLiteOpenHelper {
         mPaperContentDb = getWritableDatabase();
         mTableName = tableName;
 
-        Cursor c = mPaperContentDb.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
+        /*Cursor c = mPaperContentDb.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
 
         if (c.moveToFirst()) {
             StringBuilder str = new StringBuilder("tableList: \n");
@@ -26,7 +26,7 @@ public class PaperContentDbHelper extends SQLiteOpenHelper {
                 c.moveToNext();
             }
             Log.d("<<<", str.toString());
-        }
+        }*/
     }
 
     @Override

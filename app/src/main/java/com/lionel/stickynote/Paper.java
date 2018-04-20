@@ -86,7 +86,6 @@ public class Paper extends FrameLayout {
             beforeViewX = getX();
             beforeViewY = getY();
 
-            goToContent();
             return true;
         }
 
@@ -125,10 +124,6 @@ public class Paper extends FrameLayout {
             ((OpenPaperContent) mContext).openContent(mPP);
             return true;
         }
-    }
-
-    private void goToContent() {
-
     }
 
     private void moveWithinBoundary(float x, float y) {
