@@ -50,7 +50,8 @@ public class PaperContentDbHelper extends SQLiteOpenHelper {
                 mPaperContentDb.execSQL("CREATE TABLE " + mTableName + " (" +
                         "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
                         "title TEXT," +
-                        "item TEXT);");
+                        "item TEXT,"+
+                        "theme_index INTEGER DEFAULT 0);");
             }
             c.close();
         }

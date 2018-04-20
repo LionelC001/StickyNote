@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:cardBackgroundColor="#88ff0000"
+    android:id="@+id/contentItemCardView"
     android:layout_margin="4dp"
     app:cardCornerRadius="10dp">
 

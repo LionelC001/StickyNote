@@ -9,7 +9,6 @@ import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.transition.Transition;
 import android.transition.TransitionInflater;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 
@@ -33,7 +32,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         super.onCreate(savedInstanceState);
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         setContentView(R.layout.activity_main);
-        mRootView = findViewById(R.id.rootView);
+        mRootView = findViewById(R.id.mainRootView);
         mChildViewCount = mRootView.getChildCount();
         mPaperPropertyArrayList = new ArrayList<>();
         setupTransition();
@@ -85,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     public void AddPaper(View view) {
         PaperProperty mPp = new PaperProperty(mPaperId, null,
                 new String[]{null, null, null, null},
-                "#55555500",
+                "#AF626262",
                 new float[]{0, 0});
         Paper paper = new Paper(this, mPp);
         mPaperPropertyArrayList.add(mPp);

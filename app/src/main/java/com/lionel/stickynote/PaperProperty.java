@@ -39,6 +39,10 @@ class PaperProperty implements Serializable {
         return mContent;
     }
 
+    public void setBackgroundColor(String color) {
+        mBackgroundColor = color;
+    }
+
     public String getBackgroundColor() {
         return mBackgroundColor;
     }

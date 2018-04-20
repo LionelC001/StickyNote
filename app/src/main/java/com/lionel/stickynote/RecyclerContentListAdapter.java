@@ -3,6 +3,8 @@ package com.lionel.stickynote;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -18,22 +20,28 @@ import java.util.Collections;
 public class RecyclerContentListAdapter extends RecyclerView.Adapter<RecyclerContentListAdapter.MyViewHolder>
         implements SimpleItemTouchHelper.ItemMoveDismissInterface {
 
+    private String mItemBGColor, mItemIndexColor, mItemTextColor;
     private ArrayList<String> mContentItemList;
     private Context mContext;
 
-    RecyclerContentListAdapter(ArrayList<String> contentItemList) {
+    RecyclerContentListAdapter(ArrayList<String> contentItemList, String itemBG, String itemIndex, String itemText) {
         mContentItemList = contentItemList;
+        mItemBGColor = itemBG;
+        mItemIndexColor = itemIndex;
+        mItemTextColor = itemText;
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder {
 
         private TextView mTxtContentItemIndex;
         private EditText mEdtContentItem;
+        private CardView mContentItemCardView;
 
         MyViewHolder(View itemView) {
             super(itemView);
             mTxtContentItemIndex = itemView.findViewById(R.id.txtContentItemIndex);
             mEdtContentItem = itemView.findViewById(R.id.edtContentItem);
+            mContentItemCardView = itemView.findViewById(R.id.contentItemCardView);
         }
     }
 
@@ -48,8 +56,12 @@ public class RecyclerContentListAdapter extends RecyclerView.Adapter<RecyclerCon
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
-        holder.mTxtContentItemIndex.setText((position + 1) + ". ");
+        // set color
+        holder.mContentItemCardView.setCardBackgroundColor(Color.parseColor(mItemBGColor));
+        holder.mTxtContentItemIndex.setTextColor(Color.parseColor(mItemIndexColor));
+        holder.mEdtContentItem.setTextColor(Color.parseColor(mItemTextColor));
 
+        holder.mTxtContentItemIndex.setText((position + 1) + ". ");
 
         // kill the old TextWatcher!
         // if don't kill, the old TextWatcher will active as the ViewHolder reuse,
