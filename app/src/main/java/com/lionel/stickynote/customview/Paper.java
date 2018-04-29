@@ -1,8 +1,7 @@
-package com.lionel.stickynote;
+package com.lionel.stickynote.customview;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
@@ -15,8 +14,11 @@ import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-// this class is responsible for notepaper's appearance, and open the notepaper's content
+import com.lionel.stickynote.MainActivity;
+import com.lionel.stickynote.R;
+import com.lionel.stickynote.fieldclass.PaperProperty;
 
+// this class is responsible for notepaper's appearance, open the notepaper's content, and delete self
 public class Paper extends FrameLayout {
 
     private Context mContext;
@@ -26,7 +28,7 @@ public class Paper extends FrameLayout {
     private GestureDetector gestureDetector;
     private PaperProperty mPP;
 
-    interface DeletePaperInterface {
+    public interface DeletePaperInterface {
         void deletePaper(Paper paper, PaperProperty pp);
     }
 
@@ -70,6 +72,23 @@ public class Paper extends FrameLayout {
         if (e.getAction() == MotionEvent.ACTION_UP) {
             // restore view's appearance
             setupPaperOrigin();
+
+            // While finger is up, detect if paper touch the delete region or not.
+            if ((getX() < MainActivity.iDeleteRegionX &&
+                    (getY() + getHeight()) > MainActivity.iDeleteRegionY)) {
+                new AlertDialog.Builder(mContext)
+                        .setTitle("Delete")
+                        .setMessage("Are you sure for deleting this paper permanently?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ((DeletePaperInterface) mContext).deletePaper(Paper.this, mPP);
+                            }
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .setCancelable(true)
+                        .show();
+            }
         }
         return gestureDetector.onTouchEvent(e);
     }
@@ -99,24 +118,6 @@ public class Paper extends FrameLayout {
             // move within the boundaries
             moveWithinBoundary(x, y);
             return true;
-        }
-
-        @Override
-        public void onLongPress(MotionEvent e) {
-            super.onLongPress(e);
-
-            new AlertDialog.Builder(mContext)
-                    .setTitle("Delete")
-                    .setMessage("Are you sure for deleting this paper permanently?")
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            ((DeletePaperInterface) mContext).deletePaper(Paper.this, mPP);
-                        }
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .setCancelable(true)
-                    .show();
         }
 
         @Override

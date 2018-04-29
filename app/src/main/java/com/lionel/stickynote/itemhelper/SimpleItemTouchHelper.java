@@ -1,7 +1,9 @@
-package com.lionel.stickynote;
+package com.lionel.stickynote.itemhelper;
 
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+
+import com.lionel.stickynote.adapter.RecyclerContentListAdapter;
 
 import static android.support.v7.widget.helper.ItemTouchHelper.DOWN;
 import static android.support.v7.widget.helper.ItemTouchHelper.LEFT;
@@ -12,12 +14,12 @@ public class SimpleItemTouchHelper extends ItemTouchHelper.Callback {
 
     private ItemMoveDismissInterface mRecyclerAdapter;
 
-    interface ItemMoveDismissInterface {
+    public interface ItemMoveDismissInterface {
         void onItemMove(int from, int to);
         void onItemDismiss(int position);
     }
 
-    SimpleItemTouchHelper(RecyclerContentListAdapter adapter) {
+    public SimpleItemTouchHelper(RecyclerContentListAdapter adapter) {
         mRecyclerAdapter = adapter;
     }
 

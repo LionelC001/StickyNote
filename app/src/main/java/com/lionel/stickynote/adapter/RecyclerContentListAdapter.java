@@ -1,4 +1,4 @@
-package com.lionel.stickynote;
+package com.lionel.stickynote.adapter;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -14,6 +14,9 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.lionel.stickynote.R;
+import com.lionel.stickynote.itemhelper.SimpleItemTouchHelper;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -24,7 +27,7 @@ public class RecyclerContentListAdapter extends RecyclerView.Adapter<RecyclerCon
     private ArrayList<String> mContentItemList;
     private Context mContext;
 
-    RecyclerContentListAdapter(ArrayList<String> contentItemList, String itemBG, String itemIndex, String itemText) {
+    public RecyclerContentListAdapter(ArrayList<String> contentItemList, String itemBG, String itemIndex, String itemText) {
         mContentItemList = contentItemList;
         mItemBGColor = itemBG;
         mItemIndexColor = itemIndex;

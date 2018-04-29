@@ -1,4 +1,4 @@
-package com.lionel.stickynote;
+package com.lionel.stickynote.sqliteopenhelper;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -12,7 +12,7 @@ public class PaperContentDbHelper extends SQLiteOpenHelper {
     private String mTableName;
     private SQLiteDatabase mPaperContentDb;
 
-    PaperContentDbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, String tableName) {
+    public PaperContentDbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, String tableName) {
         super(context, name, factory, version);
         mPaperContentDb = getWritableDatabase();
         mTableName = tableName;

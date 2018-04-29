@@ -10,10 +10,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.transition.Transition;
 import android.transition.TransitionInflater;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.Window;
+import android.widget.ImageView;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.lionel.stickynote.customview.Paper;
+import com.lionel.stickynote.fieldclass.PaperProperty;
+import com.lionel.stickynote.sqliteopenhelper.PaperContentDbHelper;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -26,6 +31,8 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     private ArrayList<PaperProperty> mPaperPropertyArrayList; // store Paper object
     private int mChildViewCount, mPaperId;
     private boolean isReenter;
+    public static double iDeleteRegionX, iDeleteRegionY;
+    private ImageView mImgViewTrashCan;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +42,21 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         mRootView = findViewById(R.id.mainRootView);
         mChildViewCount = mRootView.getChildCount();
         mPaperPropertyArrayList = new ArrayList<>();
+        setupDeleteRegion();
         setupTransition();
+    }
+
+    private void setupDeleteRegion() {
+        // define delete region's X & Y
+        mImgViewTrashCan = findViewById(R.id.imgViewTrashCan);
+        mImgViewTrashCan.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                iDeleteRegionX = mImgViewTrashCan.getX() + mImgViewTrashCan.getWidth() * 0.85;
+                iDeleteRegionY = mImgViewTrashCan.getY() + mImgViewTrashCan.getHeight() * 0.15;
+                mImgViewTrashCan.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
     }
 
     private void setupTransition() {
@@ -58,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
 
     private void setupPapers() {
         // to avoid there is view and data remain
-        mRootView.removeViews(1, mRootView.getChildCount() - 1);
+        mRootView.removeViews(2, mRootView.getChildCount() - 2);
         mPaperPropertyArrayList.clear();
 
         // read Paper Property from sharedPreferences
@@ -125,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     protected void onStart() {
         super.onStart();
         // only use setupPapers() in onStart() in the following situations: first time to startup app or the paper was disappeared
-        if (mChildViewCount == 1 || mRootView.getChildCount() != mChildViewCount) {
+        if (mChildViewCount == 2 || mRootView.getChildCount() != mChildViewCount) {
             setupPapers();
             mChildViewCount = mRootView.getChildCount();
         }

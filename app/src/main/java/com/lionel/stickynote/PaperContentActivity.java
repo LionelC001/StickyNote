@@ -16,7 +16,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -24,6 +23,11 @@ import android.widget.TableRow;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.lionel.stickynote.adapter.RecyclerContentListAdapter;
+import com.lionel.stickynote.customview.ColorPickerBlock;
+import com.lionel.stickynote.fieldclass.PaperProperty;
+import com.lionel.stickynote.itemhelper.SimpleItemTouchHelper;
+import com.lionel.stickynote.sqliteopenhelper.PaperContentDbHelper;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
@@ -60,7 +64,7 @@ public class PaperContentActivity extends AppCompatActivity {
         private final WeakReference<PaperContentActivity> mActivity;
 
         ColorPickerHandler(PaperContentActivity activity) {
-            mActivity = new WeakReference<PaperContentActivity>(activity);
+            mActivity = new WeakReference<>(activity);
         }
 
         @Override
@@ -226,8 +230,7 @@ public class PaperContentActivity extends AppCompatActivity {
             tableLayout.addView(tableRow);
         }
         mDialog = new Dialog(this);
-        mDialog.setContentView(tableLayout, new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        mDialog.setContentView(tableLayout);
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         mDialog.setCancelable(true);
         mDialog.show();

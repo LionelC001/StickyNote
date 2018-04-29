@@ -1,9 +1,9 @@
-package com.lionel.stickynote;
+package com.lionel.stickynote.fieldclass;
 
 import java.io.Serializable;
 
 // this class is responsible for store notepaper's appearance property
-class PaperProperty implements Serializable {
+public class PaperProperty implements Serializable {
 
     private final int PAPER_ID;
     private float[] mPosition;
@@ -11,7 +11,7 @@ class PaperProperty implements Serializable {
     private String[] mContent;
     private String mBackgroundColor;
 
-    PaperProperty(int paperId, String title, String[] content, String backgroundColor, float[] position) {
+    public PaperProperty(int paperId, String title, String[] content, String backgroundColor, float[] position) {
         PAPER_ID = paperId;
         mTitle = title;
         mContent = content;

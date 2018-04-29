@@ -1,4 +1,4 @@
-package com.lionel.stickynote;
+package com.lionel.stickynote.customview;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -28,8 +28,6 @@ public class ColorPickerBlock extends View {
         for (int i = 0; i < mColorList.length; i++) {
             if (colorB.equals(mColorList[i])) id = i;
         }
-        Log.d("<<<", "ColorPickerBlock id: " + id);
-
         mHandler = handler;
         mColorF = colorF;
 

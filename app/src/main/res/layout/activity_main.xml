@@ -8,16 +8,29 @@
     tools:context="com.lionel.stickynote.MainActivity">
 
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/button_shape"
+    <ImageView
+        android:layout_width="85dp"
+        android:layout_height="85dp"
+        android:background="@drawable/add_paper_shape"
         android:onClick="AddPaper"
-        android:text="Add Paper"
+        android:src="@drawable/paper_icon"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.943"
+        app:layout_constraintHorizontal_bias="0.97"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.965" />
+        app:layout_constraintVertical_bias="0.97" />
+
+    <ImageView
+        android:id="@+id/imgViewTrashCan"
+        android:layout_width="85dp"
+        android:layout_height="85dp"
+        android:background="@drawable/trash_can_shape"
+        android:src="@drawable/trashcan_icon"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.03"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.97" />
 </android.support.constraint.ConstraintLayout>
