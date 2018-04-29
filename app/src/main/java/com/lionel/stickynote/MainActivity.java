@@ -39,11 +39,23 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         super.onCreate(savedInstanceState);
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         setContentView(R.layout.activity_main);
+
         mRootView = findViewById(R.id.mainRootView);
         mChildViewCount = mRootView.getChildCount();
         mPaperPropertyArrayList = new ArrayList<>();
+
         setupDeleteRegion();
         setupTransition();
+        showIntroPages();
+    }
+
+    private void showIntroPages() {
+        // if app is first time launched, then show the intro pages
+        SharedPreferences sharedPreferences = getSharedPreferences("FirstTimeUser", MODE_PRIVATE);
+        if (sharedPreferences.getBoolean("isFirstTime", true)) {
+            startActivity(new Intent(this, IntroPageActivity.class));
+            sharedPreferences.edit().putBoolean("isFirstTime", false).apply();
+        }
     }
 
     private void setupDeleteRegion() {
