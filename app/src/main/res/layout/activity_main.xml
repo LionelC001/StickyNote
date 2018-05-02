@@ -6,8 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.lionel.stickynote.MainActivity">
-
-
+    <!--android:background="#f1b2d094"-->
     <ImageView
         android:layout_width="85dp"
         android:layout_height="85dp"
