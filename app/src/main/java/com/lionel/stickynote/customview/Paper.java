@@ -78,7 +78,7 @@ public class Paper extends FrameLayout {
                     (getY() + getHeight()) > MainActivity.iDeleteRegionY)) {
                 new AlertDialog.Builder(mContext)
                         .setTitle("Delete")
-                        .setMessage("Are you sure for deleting this paper permanently?")
+                        .setMessage("Are you sure you want to delete this paper permanently?\n")
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

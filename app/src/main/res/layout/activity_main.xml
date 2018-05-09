@@ -5,8 +5,9 @@
     android:id="@+id/mainRootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#ffffff"
     tools:context="com.lionel.stickynote.MainActivity">
-    <!--android:background="#f1b2d094"-->
+
     <ImageView
         android:layout_width="85dp"
         android:layout_height="85dp"
@@ -32,4 +33,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.97" />
+
+
 </android.support.constraint.ConstraintLayout>

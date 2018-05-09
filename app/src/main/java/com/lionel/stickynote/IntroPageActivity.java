@@ -15,6 +15,7 @@ import com.lionel.stickynote.adapter.IntroPageAdapter;
 
 import java.util.ArrayList;
 
+// this class is responsible for simple introduction of operation
 public class IntroPageActivity extends AppCompatActivity {
 
     private ViewPager mViewPager;

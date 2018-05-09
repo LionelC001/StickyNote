@@ -15,7 +15,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.lionel.stickynote.R;
-import com.lionel.stickynote.itemhelper.SimpleItemTouchHelper;
+import com.lionel.stickynote.helper.SimpleItemTouchHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -4,12 +4,25 @@
     <item
         android:id="@+id/menuItemBackground"
         android:title="Choose Wallpaper"
-        app:showAsAction="never" />
+        android:icon="@drawable/wallpaper"
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/menuItemResetBackground"
         android:title="Rest Wallpaper"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menuItemBackupDataToCloud"
+        android:title="Backup Data to Cloud"
+        android:icon="@drawable/backup"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menuItemRestoreData"
+        android:title="Restore Data from Cloud"
+        app:showAsAction="never" />
+
 
     <item
         android:id="@+id/menuItemIntroPage"

@@ -22,6 +22,7 @@
             android:hint="Title"
             android:textColor="@android:color/black"
             android:textSize="22sp"
+            android:maxLines="1"
             android:textStyle="bold" />
 
         <TextView

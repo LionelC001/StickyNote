@@ -1,4 +1,4 @@
-package com.lionel.stickynote.sqliteopenhelper;
+package com.lionel.stickynote.helper;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -9,19 +9,19 @@ import android.util.Log;
 
 public class PaperContentDbHelper extends SQLiteOpenHelper {
 
-    private String mTableName;
+    public final static String DB_NAME = "PaperContent.db";
+    public final static String TABLE_NAME = "Papers";
     private SQLiteDatabase mPaperContentDb;
 
-    public PaperContentDbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, String tableName) {
-        super(context, name, factory, version);
+
+    public PaperContentDbHelper(Context context, String dbName, SQLiteDatabase.CursorFactory factory, int version) {
+        super(context, dbName, factory, version);
         mPaperContentDb = getWritableDatabase();
-        mTableName = tableName;
 
         /*Cursor c = mPaperContentDb.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
-
         if (c.moveToFirst()) {
             StringBuilder str = new StringBuilder("tableList: \n");
-            while ( !c.isAfterLast() ) {
+            while (!c.isAfterLast()) {
                 str.append(c.getString(0)).append("\n");
                 c.moveToNext();
             }
@@ -43,14 +43,15 @@ public class PaperContentDbHelper extends SQLiteOpenHelper {
         //create table if it is null
         Cursor c = mPaperContentDb.rawQuery(
                 "SELECT DISTINCT tbl_name FROM sqlite_master WHERE " +
-                        "tbl_name = '" + mTableName + "'"
+                        "tbl_name = '" + TABLE_NAME + "'"
                 , null);
         if (c != null) {
             if (c.getCount() == 0) {
-                mPaperContentDb.execSQL("CREATE TABLE " + mTableName + " (" +
+                mPaperContentDb.execSQL("CREATE TABLE " + TABLE_NAME + " (" +
                         "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "paper_name TEXT," +
                         "title TEXT," +
-                        "item TEXT,"+
+                        "item TEXT," +
                         "theme_index INTEGER DEFAULT 0);");
             }
             c.close();
@@ -70,8 +71,12 @@ public class PaperContentDbHelper extends SQLiteOpenHelper {
         mPaperContentDb.update(table, values, whereClause, whereArgs);
     }
 
-    public void deleteTable() {
-        mPaperContentDb.execSQL("DROP TABLE IF EXISTS " + mTableName);
+    public void deletePaper(String paperName) {
+        mPaperContentDb.delete(TABLE_NAME, "paper_name=?", new String[]{paperName});
+    }
+
+    public void deleteALLPaper() {
+        mPaperContentDb.delete(TABLE_NAME, null, null);
     }
 
     @Override

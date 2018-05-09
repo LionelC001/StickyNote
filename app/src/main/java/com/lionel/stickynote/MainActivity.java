@@ -3,6 +3,7 @@ package com.lionel.stickynote;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActivityOptions;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -17,6 +18,7 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.transition.Transition;
 import android.transition.TransitionInflater;
@@ -26,34 +28,38 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.lionel.stickynote.customview.Paper;
 import com.lionel.stickynote.fieldclass.PaperProperty;
-import com.lionel.stickynote.sqliteopenhelper.PaperContentDbHelper;
+import com.lionel.stickynote.helper.FirebaseCloudHelper;
+import com.lionel.stickynote.helper.PaperContentDbHelper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
-import static com.lionel.stickynote.PaperContentActivity.DB_NAME;
+import static com.lionel.stickynote.helper.PaperContentDbHelper.DB_NAME;
 
 
 public class MainActivity extends AppCompatActivity implements Paper.DeletePaperInterface, Paper.OpenPaperContent {
     private static final int REQUEST_CODE_FOR_OPEN_CONTENT = 100;
     private static final int REQUEST_CODE_FOR_PICK_PHOTO_ = 200;
     private static final int REQUEST_CODE_FOR_CROP_PHOTO = 300;
-    private static final int REQUEST_PERMISSION_FOR_WRITE_EXTERNAL_STORAGE = 999;
+    private static final int REQUEST_PERMISSION_FOR_PICK_PHOTO = 999;
+    private static final int REQUEST_PERMISSION_FOR_RESTORE_DATA = 888;
 
     private ConstraintLayout mRootView;
     private ArrayList<PaperProperty> mPaperPropertyArrayList; // store Paper object
-    private int mChildViewCount, mPaperId;
+    private int mChildViewCount, mPaperIdNow;
     private boolean isReenter;
     public static double iDeleteRegionX, iDeleteRegionY;
     private ImageView mImgViewTrashCan;
+    private String mPicUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +84,11 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
             setupDeskTop();
             mChildViewCount = mRootView.getChildCount();
         }
+
+      /*  Map<String, ?> allEntries = getSharedPreferences("MainData", MODE_PRIVATE).getAll();
+        for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+            Log.d("<<<", "\n" + entry.getKey() + ": " + entry.getValue().toString());
+        }*/
     }
 
     @Override
@@ -85,13 +96,16 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         super.onStop();
         // save Paper Property to sharedPreferences
         SharedPreferences.Editor sharedPreferences =
-                getSharedPreferences("PaperPropertyData", MODE_PRIVATE).edit();
+                getSharedPreferences("MainData", MODE_PRIVATE).edit();
         Gson gson = new Gson();
         String json = gson.toJson(mPaperPropertyArrayList);
         sharedPreferences.putString("PaperProperty", json);
 
         // to save Paper Id is how much to add now
-        sharedPreferences.putInt("PaperId", mPaperId);
+        sharedPreferences.putInt("PaperIdNow", mPaperIdNow);
+        // to save background picture which user chose
+        sharedPreferences.putString("PicUri", mPicUri);
+
         sharedPreferences.apply();
     }
 
@@ -110,16 +124,34 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                         PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(this,
                             new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                            REQUEST_PERMISSION_FOR_WRITE_EXTERNAL_STORAGE);
+                            REQUEST_PERMISSION_FOR_PICK_PHOTO);
                 } else {
                     pickPhoto();
                 }
                 break;
             case R.id.menuItemResetBackground:
-                mRootView.setBackgroundColor(Color.parseColor("#ffffff"));
-                SharedPreferences.Editor spBackgroundPic = getSharedPreferences("BackgroundData", MODE_PRIVATE).edit();
-                spBackgroundPic.remove("PicUri");
-                spBackgroundPic.apply();
+                new AlertDialog.Builder(this)
+                        .setTitle("Reset WallPaper")
+                        .setMessage("Your wallpaper will be blank, is it ok?")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mRootView.setBackgroundColor(Color.parseColor("#ffffff"));
+                                SharedPreferences.Editor sp = getSharedPreferences("MainData", MODE_PRIVATE).edit();
+                                sp.remove("PicUri");
+                                sp.apply();
+                                mPicUri = null;
+                            }
+                        })
+                        .setNegativeButton("NO", null)
+                        .setCancelable(true)
+                        .show();
+                break;
+            case R.id.menuItemBackupDataToCloud:
+                backupDataToCloud();
+                break;
+            case R.id.menuItemRestoreData:
+                RestoreDataFromCloud();
                 break;
             case R.id.menuItemIntroPage:
                 startActivity(new Intent(this, IntroPageActivity.class));
@@ -150,10 +182,9 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                             e.printStackTrace();
                             Toast.makeText(this, "Can not find file", Toast.LENGTH_LONG).show();
                         }
-                        // to save background picture which user chose
-                        SharedPreferences.Editor spBackgroundPic = getSharedPreferences("BackgroundData", MODE_PRIVATE).edit();
-                        spBackgroundPic.putString("PicUri", cropUri.toString());
-                        spBackgroundPic.apply();
+                        getSharedPreferences("MainData",MODE_PRIVATE).edit()
+                                .putString("PicUri", cropUri.toString()).apply();
+                        mPicUri = cropUri.toString();
                     }
                 }
                 break;
@@ -167,13 +198,102 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_PERMISSION_FOR_WRITE_EXTERNAL_STORAGE) {
-            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Need Permission for write_external_storage", Toast.LENGTH_LONG).show();
-            } else {
-                pickPhoto();
+        switch (requestCode) {
+            case REQUEST_PERMISSION_FOR_PICK_PHOTO:
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Need Permission for write_external_storage", Toast.LENGTH_LONG).show();
+                } else {
+                    pickPhoto();
+                }
+                break;
+            case REQUEST_PERMISSION_FOR_RESTORE_DATA:
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Need Permission for write_external_storage", Toast.LENGTH_LONG).show();
+                } else {
+                    RestoreDataFromCloud();
+                }
+        }
+    }
+
+    @Override
+    public void onEnterAnimationComplete() {
+        // exit animation would call this method, too. have to prevent it.
+        if (isReenter) {
+            setupDeskTop();
+            isReenter = false;
+        }
+        super.onEnterAnimationComplete();
+    }
+
+    private void showIntroPages() {
+        // if app is first time launched, then show the intro pages
+        SharedPreferences sharedPreferences = getSharedPreferences("MainData", MODE_PRIVATE);
+        if (sharedPreferences.getBoolean("isFirstTime", true)) {
+            startActivity(new Intent(this, IntroPageActivity.class));
+            sharedPreferences.edit().putBoolean("isFirstTime", false).apply();
+        }
+    }
+
+    private void setupDeleteRegion() {
+        // define delete region's X & Y
+        mImgViewTrashCan = findViewById(R.id.imgViewTrashCan);
+        mImgViewTrashCan.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                iDeleteRegionX = mImgViewTrashCan.getX() + mImgViewTrashCan.getWidth() * 0.85;
+                iDeleteRegionY = mImgViewTrashCan.getY() + mImgViewTrashCan.getHeight() * 0.15;
+                mImgViewTrashCan.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
+    }
+
+    private void setupTransition() {
+        Transition transition1 = TransitionInflater.from(this).inflateTransition(R.transition.transition1);
+        Transition transition2 = TransitionInflater.from(this).inflateTransition(R.transition.transition2);
+        getWindow().setExitTransition(transition1);
+        getWindow().setReenterTransition(transition2);
+    }
+
+    public void setupDeskTop() {
+        // to avoid there is view and data remain
+        mRootView.removeViews(2, mRootView.getChildCount() - 2);
+        mPaperPropertyArrayList.clear();
+
+        // read Paper Property from sharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("MainData", MODE_PRIVATE);
+        String json = sharedPreferences.getString("PaperProperty", null);
+        if (json != null) {
+            Gson gson = new Gson();
+            Type type = new TypeToken<ArrayList<PaperProperty>>() {
+            }.getType();
+            mPaperPropertyArrayList = gson.fromJson(json, type);
+        }
+        // get Paper id from sharedPreferences
+        if (mPaperIdNow == 0) mPaperIdNow = sharedPreferences.getInt("PaperIdNow", 0);
+
+        // setup papers
+        for (int i = 0; i < mPaperPropertyArrayList.size(); i++) {
+            PaperProperty pp = mPaperPropertyArrayList.get(i);
+            Paper paper = new Paper(this, pp);
+            mRootView.addView(paper);
+        }
+
+        // setBackground if user have chosen picture before.
+        mRootView.setBackgroundColor(Color.parseColor("#ffffff"));
+        String backgroundUri = sharedPreferences.getString("PicUri", null);
+        if (backgroundUri != null) {
+            Uri cropUri = Uri.parse(backgroundUri);
+            mPicUri = backgroundUri;
+            try {
+                Bitmap cropBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(cropUri), null, null);
+                mRootView.setBackground(new BitmapDrawable(getResources(), cropBitmap));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Can not find wallpaper file", Toast.LENGTH_LONG).show();
             }
         }
+        // to avoid content transition preforms incorrect
+        mRootView.setTransitionGroup(false);
     }
 
     private void pickPhoto() {
@@ -205,97 +325,15 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         startActivityForResult(cropIntent, REQUEST_CODE_FOR_CROP_PHOTO);
     }
 
-    private void showIntroPages() {
-        // if app is first time launched, then show the intro pages
-        SharedPreferences sharedPreferences = getSharedPreferences("FirstTimeUser", MODE_PRIVATE);
-        if (sharedPreferences.getBoolean("isFirstTime", true)) {
-            startActivity(new Intent(this, IntroPageActivity.class));
-            sharedPreferences.edit().putBoolean("isFirstTime", false).apply();
-        }
-    }
-
-    private void setupDeleteRegion() {
-        // define delete region's X & Y
-        mImgViewTrashCan = findViewById(R.id.imgViewTrashCan);
-        mImgViewTrashCan.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                iDeleteRegionX = mImgViewTrashCan.getX() + mImgViewTrashCan.getWidth() * 0.85;
-                iDeleteRegionY = mImgViewTrashCan.getY() + mImgViewTrashCan.getHeight() * 0.15;
-                mImgViewTrashCan.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            }
-        });
-    }
-
-    private void setupTransition() {
-        Transition transition1 = TransitionInflater.from(this).inflateTransition(R.transition.transition1);
-        Transition transition2 = TransitionInflater.from(this).inflateTransition(R.transition.transition2);
-        getWindow().setExitTransition(transition1);
-        getWindow().setReenterTransition(transition2);
-    }
-
-    @Override
-    public void onEnterAnimationComplete() {
-        // exit animation would call this method, too. have to prevent it.
-        if (isReenter) {
-            setupDeskTop();
-            isReenter = false;
-        }
-        super.onEnterAnimationComplete();
-    }
-
-    private void setupDeskTop() {
-        // to avoid there is view and data remain
-        mRootView.removeViews(2, mRootView.getChildCount() - 2);
-        mPaperPropertyArrayList.clear();
-
-        // read Paper Property from sharedPreferences
-        SharedPreferences sharedPreferences = getSharedPreferences("PaperPropertyData", MODE_PRIVATE);
-        String json = sharedPreferences.getString("PaperProperty", null);
-        if (json != null) {
-            Gson gson = new Gson();
-            Type type = new TypeToken<ArrayList<PaperProperty>>() {
-            }.getType();
-            mPaperPropertyArrayList = gson.fromJson(json, type);
-        }
-        // get Paper id from sharedPreferences
-        if (mPaperId == 0) mPaperId = sharedPreferences.getInt("PaperId", 0);
-
-        // setup papers
-        for (int i = 0; i < mPaperPropertyArrayList.size(); i++) {
-            PaperProperty pp = mPaperPropertyArrayList.get(i);
-            Paper paper = new Paper(this, pp);
-            mRootView.addView(paper);
-        }
-
-        // setBackground if user have chosen picture before.
-        SharedPreferences sharedPreferencesBackground = getSharedPreferences("BackgroundData", MODE_PRIVATE);
-        String backgroundUri = sharedPreferencesBackground.getString("PicUri", null);
-        if (backgroundUri != null) {
-            Uri cropUri = Uri.parse(backgroundUri);
-            try {
-                Bitmap cropBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(cropUri), null, null);
-                mRootView.setBackground(new BitmapDrawable(getResources(), cropBitmap));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                Toast.makeText(this, "Can not find wallpaper file", Toast.LENGTH_LONG).show();
-            }
-        } else {
-            mRootView.setBackgroundColor(Color.parseColor("#ffffff"));
-        }
-        // to avoid content transition preforms incorrect
-        mRootView.setTransitionGroup(false);
-    }
-
     public void AddPaper(View view) {
-        PaperProperty mPp = new PaperProperty(mPaperId, null,
+        PaperProperty mPp = new PaperProperty(mPaperIdNow, null,
                 new String[]{null, null, null, null},
-                "#AF626262",
+                "#E1626262",
                 new float[]{0, 0});
         Paper paper = new Paper(this, mPp);
         mPaperPropertyArrayList.add(mPp);
         mRootView.addView(paper);
-        mPaperId++;
+        mPaperIdNow++;
 
         mChildViewCount = mRootView.getChildCount();
     }
@@ -305,8 +343,8 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         mRootView.removeView(paper);
         mPaperPropertyArrayList.remove(pp); // delete this paper's property from the list array
         PaperContentDbHelper paperContentDbHelper = new PaperContentDbHelper(getApplicationContext(),
-                DB_NAME, null, 1, "Paper" + pp.getPaperId());
-        paperContentDbHelper.deleteTable();
+                DB_NAME, null, 1);
+        paperContentDbHelper.deletePaper("Paper" + pp.getPaperId());
         paperContentDbHelper.close();
 
         mChildViewCount = mRootView.getChildCount();
@@ -325,5 +363,52 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         bundle.putSerializable("PaperPropertyList", mPaperPropertyArrayList);
         intent.putExtras(bundle);
         startActivityForResult(intent, REQUEST_CODE_FOR_OPEN_CONTENT, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
+    }
+
+    private void backupDataToCloud() {
+        new AlertDialog.Builder(this)
+                .setTitle("Backup")
+                .setMessage("Are you sure you want to update data to cloud? \n\n(If you do, you'll lose the last saved data in Cloud.)\n")
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
+                        readWriteCloudHelper.WriteToCloud(mPicUri, mPaperIdNow, mPaperPropertyArrayList);
+
+                        // show loading screen
+
+                    }
+                })
+                .setNegativeButton("No", null)
+                .setCancelable(true)
+                .show();
+    }
+
+    private void RestoreDataFromCloud() {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_PERMISSION_FOR_RESTORE_DATA);
+        } else {
+            new AlertDialog.Builder(this)
+                    .setTitle("Restore")
+                    .setMessage("Are you sure to restore the data you saved last time? \n\n(if you do, the current data will be lost.)\n")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
+                            readWriteCloudHelper.ReadFromCloud();
+                        }
+                    })
+                    .setNegativeButton("No", null)
+                    .setCancelable(true)
+                    .show();
+        }
+    }
+
+    private void showLoadingScreen() {
+
     }
 }

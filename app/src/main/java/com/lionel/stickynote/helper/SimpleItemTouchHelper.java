@@ -1,4 +1,4 @@
-package com.lionel.stickynote.itemhelper;
+package com.lionel.stickynote.helper;
 
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;

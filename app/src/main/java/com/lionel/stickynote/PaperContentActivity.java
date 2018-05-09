@@ -26,15 +26,19 @@ import com.google.gson.reflect.TypeToken;
 import com.lionel.stickynote.adapter.RecyclerContentListAdapter;
 import com.lionel.stickynote.customview.ColorPickerBlock;
 import com.lionel.stickynote.fieldclass.PaperProperty;
-import com.lionel.stickynote.itemhelper.SimpleItemTouchHelper;
-import com.lionel.stickynote.sqliteopenhelper.PaperContentDbHelper;
+import com.lionel.stickynote.helper.SimpleItemTouchHelper;
+import com.lionel.stickynote.helper.PaperContentDbHelper;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
+import static com.lionel.stickynote.helper.PaperContentDbHelper.DB_NAME;
+import static com.lionel.stickynote.helper.PaperContentDbHelper.TABLE_NAME;
+
+// this class is responsible for notepaper's content, edit items and change content's theme
 public class PaperContentActivity extends AppCompatActivity {
-    public final static String DB_NAME = "PaperContent.db";
+
     private int mThemeIndex;
 
     private PaperProperty mPaperProperty;
@@ -42,7 +46,7 @@ public class PaperContentActivity extends AppCompatActivity {
     private ArrayList<String> mContentItemList;
     private EditText mEdtContentTitle;
     private RecyclerContentListAdapter mRecyclerAdapter;
-    private String table_name;
+    private String paper_name;
     private Cursor mCursor;
     private PaperContentDbHelper mPaperContentDbHelper;
     private ColorPickerHandler mColorPickerHandler = new ColorPickerHandler(this);
@@ -90,9 +94,9 @@ public class PaperContentActivity extends AppCompatActivity {
     }
 
     private void setupDB() {
-        table_name = "Paper" + mPaperProperty.getPaperId();
+        paper_name = "Paper" + mPaperProperty.getPaperId();
         mPaperContentDbHelper = new PaperContentDbHelper(getApplicationContext(),
-                DB_NAME, null, 1, table_name);
+                DB_NAME, null, 1);
         mPaperContentDbHelper.createTable();
     }
 
@@ -111,7 +115,7 @@ public class PaperContentActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        mCursor = mPaperContentDbHelper.query(table_name, null, null, null, null, null, null);
+        mCursor = mPaperContentDbHelper.query(TABLE_NAME, null, "paper_name=?", new String[]{paper_name}, null, null, null);
         if (mCursor == null) return;
         if (mCursor.getCount() > 0) {
             mCursor.moveToFirst();
@@ -124,7 +128,7 @@ public class PaperContentActivity extends AppCompatActivity {
                 mContentItemList = gson.fromJson(json, type);
             }
             // load title form SQLite
-            mEdtContentTitle.setText(mCursor.getString(1));
+            mEdtContentTitle.setText(mCursor.getString(mCursor.getColumnIndex("title")));
             // load theme index form SQLite
             mThemeIndex = mCursor.getInt(mCursor.getColumnIndex("theme_index"));
         }
@@ -152,12 +156,13 @@ public class PaperContentActivity extends AppCompatActivity {
         String json = gson.toJson(mContentItemList);
 
         ContentValues cv = new ContentValues();
+        cv.put("paper_name", paper_name);
         cv.put("title", mEdtContentTitle.getText().toString());
         cv.put("item", json);
         cv.put("theme_index", mThemeIndex);
         // check whether it should insert or not
-        if (mCursor.getCount() == 0) mPaperContentDbHelper.insert(table_name, null, cv);
-        else mPaperContentDbHelper.update(table_name, cv, "_id=1", null);
+        if (mCursor.getCount() == 0) mPaperContentDbHelper.insert(TABLE_NAME, null, cv);
+        else mPaperContentDbHelper.update(TABLE_NAME, cv, "paper_name=?", new String[] {paper_name});
     }
 
     private void savePropertyToSP() {
@@ -186,7 +191,7 @@ public class PaperContentActivity extends AppCompatActivity {
         }
         // save this PropertyArrayList into PropertySharedPreferences
         SharedPreferences.Editor sharedPreferences =
-                getSharedPreferences("PaperPropertyData", MODE_PRIVATE).edit();
+                getSharedPreferences("MainData", MODE_PRIVATE).edit();
         Gson gson = new Gson();
         String json = gson.toJson(mPaperPropertyArrayList);
         sharedPreferences.putString("PaperProperty", json);
