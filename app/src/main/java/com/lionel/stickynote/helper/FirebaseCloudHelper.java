@@ -1,5 +1,6 @@
 package com.lionel.stickynote.helper;
 
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -44,7 +45,7 @@ public class FirebaseCloudHelper {
         mFireStoreDB = FirebaseFirestore.getInstance();
     }
 
-    public void WriteToCloud(String mPicUri, int mPaperIdNow, ArrayList<PaperProperty> mPaperPropertyArrayList) {
+    public void WriteToCloud(String mPicUri, int mPaperIdNow, ArrayList<PaperProperty> mPaperPropertyArrayList, final ProgressDialog progressDialog) {
         WriteBatch batch = mFireStoreDB.batch();
         // write SharedPreferences data to FireStore
         Map<String, Object> SPData = new HashMap<>();
@@ -90,17 +91,19 @@ public class FirebaseCloudHelper {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Toast.makeText(mActivity, "Successfully uploaded!", Toast.LENGTH_LONG).show();
+                        progressDialog.dismiss();
                     }
                 })
                 .addOnFailureListener(mActivity, new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Toast.makeText(mActivity, "Uploading failed..", Toast.LENGTH_LONG).show();
+                        progressDialog.dismiss();
                     }
                 });
     }
 
-    public void ReadFromCloud() {
+    public void ReadFromCloud(final ProgressDialog progressDialog) {
         // fetch SharedPreference and SQLite data from cloud
         FirebaseFirestore fireStoreDB = FirebaseFirestore.getInstance();
         fireStoreDB.collection("users").document("user2").collection("Data")
@@ -146,8 +149,10 @@ public class FirebaseCloudHelper {
                                     }
                                 }
                             }
+                            progressDialog.dismiss();
                             Toast.makeText(mActivity, "Successfully restored!", Toast.LENGTH_LONG).show();
                         } else {
+                            progressDialog.dismiss();
                             Toast.makeText(mActivity, "Restoring failed..", Toast.LENGTH_LONG).show();
                         }
                     }

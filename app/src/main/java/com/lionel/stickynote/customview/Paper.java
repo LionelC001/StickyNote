@@ -54,6 +54,7 @@ public class Paper extends FrameLayout {
         setBackgroundColor(Color.TRANSPARENT);
 
         // initialize
+
         setupPaperOrigin();
         setPosition();
         ((TextView) findViewById(R.id.txtPaperAppearanceTitle)).setText(pp.getTitle());
@@ -136,7 +137,7 @@ public class Paper extends FrameLayout {
             nowViewX = rect.right - getWidth();
         else nowViewX = x;
 
-        if (y < 0) nowViewY = 0;
+        if (y < MainActivity.toolbarHeight) nowViewY = MainActivity.toolbarHeight;
         else if (y + getHeight() >= rect.bottom)
             nowViewY = rect.bottom - getHeight();
         else nowViewY = y;

@@ -3,6 +3,8 @@ package com.lionel.stickynote;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActivityOptions;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,15 +13,21 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.transition.Transition;
 import android.transition.TransitionInflater;
 import android.view.Menu;
@@ -28,7 +36,6 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -46,12 +53,14 @@ import java.util.ArrayList;
 import static com.lionel.stickynote.helper.PaperContentDbHelper.DB_NAME;
 
 
-public class MainActivity extends AppCompatActivity implements Paper.DeletePaperInterface, Paper.OpenPaperContent {
+public class MainActivity extends AppCompatActivity implements Paper.DeletePaperInterface, Paper.OpenPaperContent, NavigationView.OnNavigationItemSelectedListener {
     private static final int REQUEST_CODE_FOR_OPEN_CONTENT = 100;
     private static final int REQUEST_CODE_FOR_PICK_PHOTO_ = 200;
     private static final int REQUEST_CODE_FOR_CROP_PHOTO = 300;
     private static final int REQUEST_PERMISSION_FOR_PICK_PHOTO = 999;
     private static final int REQUEST_PERMISSION_FOR_RESTORE_DATA = 888;
+
+    public static int toolbarHeight;
 
     private ConstraintLayout mRootView;
     private ArrayList<PaperProperty> mPaperPropertyArrayList; // store Paper object
@@ -60,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     public static double iDeleteRegionX, iDeleteRegionY;
     private ImageView mImgViewTrashCan;
     private String mPicUri;
+    private DrawerLayout mDrawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +80,21 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         mRootView = findViewById(R.id.mainRootView);
         mChildViewCount = mRootView.getChildCount();
         mPaperPropertyArrayList = new ArrayList<>();
+        mDrawerLayout = findViewById(R.id.drawerLayout);
+        NavigationView navigationView = findViewById(R.id.navigationView);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        final Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                toolbarHeight = toolbar.getHeight();
+                toolbar.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.menu);
 
         setupDeleteRegion();
         setupTransition();
@@ -80,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     protected void onStart() {
         super.onStart();
         // only use setupDeskTop() in onStart() in the following situations: first time to startup app or the paper was disappeared
-        if (mChildViewCount == 2 || mRootView.getChildCount() != mChildViewCount) {
+        if (mChildViewCount == 3 || mRootView.getChildCount() != mChildViewCount) {
             setupDeskTop();
             mChildViewCount = mRootView.getChildCount();
         }
@@ -118,16 +143,8 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menuItemBackground:
-                if (ActivityCompat.checkSelfPermission(this,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
-                        PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(this,
-                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                            REQUEST_PERMISSION_FOR_PICK_PHOTO);
-                } else {
-                    pickPhoto();
-                }
+            case android.R.id.home:
+                mDrawerLayout.openDrawer(GravityCompat.START);
                 break;
             case R.id.menuItemResetBackground:
                 new AlertDialog.Builder(this)
@@ -147,17 +164,8 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                         .setCancelable(true)
                         .show();
                 break;
-            case R.id.menuItemBackupDataToCloud:
-                backupDataToCloud();
-                break;
-            case R.id.menuItemRestoreData:
-                RestoreDataFromCloud();
-                break;
             case R.id.menuItemIntroPage:
                 startActivity(new Intent(this, IntroPageActivity.class));
-                break;
-            case R.id.menuItemAbout:
-
                 break;
         }
         return true;
@@ -182,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                             e.printStackTrace();
                             Toast.makeText(this, "Can not find file", Toast.LENGTH_LONG).show();
                         }
-                        getSharedPreferences("MainData",MODE_PRIVATE).edit()
+                        getSharedPreferences("MainData", MODE_PRIVATE).edit()
                                 .putString("PicUri", cropUri.toString()).apply();
                         mPicUri = cropUri.toString();
                     }
@@ -256,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
 
     public void setupDeskTop() {
         // to avoid there is view and data remain
-        mRootView.removeViews(2, mRootView.getChildCount() - 2);
+        mRootView.removeViews(3, mRootView.getChildCount() - 3);
         mPaperPropertyArrayList.clear();
 
         // read Paper Property from sharedPreferences
@@ -332,6 +340,8 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                 new float[]{0, 0});
         Paper paper = new Paper(this, mPp);
         mPaperPropertyArrayList.add(mPp);
+        paper.setX(0);
+        paper.setY(toolbarHeight);
         mRootView.addView(paper);
         mPaperIdNow++;
 
@@ -368,14 +378,21 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     private void backupDataToCloud() {
         new AlertDialog.Builder(this)
                 .setTitle("Backup")
-                .setMessage("Are you sure you want to update data to cloud? \n\n(If you do, you'll lose the last saved data in Cloud.)\n")
+                .setMessage("Are you sure you want to upload data to cloud? \n\n(If you do, you'll lose the last saved data in Cloud.)\n")
                 .setPositiveButton("YES", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
-                        readWriteCloudHelper.WriteToCloud(mPicUri, mPaperIdNow, mPaperPropertyArrayList);
+                        if (isNetworkAvailable()) {
+                            ProgressDialog progress = new ProgressDialog(MainActivity.this);
+                            progress.setTitle("Backup");
+                            progress.setMessage("Wait while Updating...");
+                            progress.setCancelable(false);
+                            progress.show();
 
-                        // show loading screen
+                            FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
+                            readWriteCloudHelper.WriteToCloud(mPicUri, mPaperIdNow, mPaperPropertyArrayList, progress);
+                        } else
+                            Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
 
                     }
                 })
@@ -398,8 +415,17 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                     .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
-                            readWriteCloudHelper.ReadFromCloud();
+                            if (isNetworkAvailable()) {
+                                ProgressDialog progress = new ProgressDialog(MainActivity.this);
+                                progress.setTitle("Restore");
+                                progress.setMessage("Wait while loading...");
+                                progress.setCancelable(false);
+                                progress.show();
+
+                                FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
+                                readWriteCloudHelper.ReadFromCloud(progress);
+                            } else
+                                Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
                         }
                     })
                     .setNegativeButton("No", null)
@@ -408,7 +434,40 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         }
     }
 
-    private void showLoadingScreen() {
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = null;
+        if (connectivityManager != null) {
+            activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        }
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.drawerItemBackground:
+                if (ActivityCompat.checkSelfPermission(this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                        PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            REQUEST_PERMISSION_FOR_PICK_PHOTO);
+                } else {
+                    pickPhoto();
+                }
+                break;
+            case R.id.drawerItemBackupDataToCloud:
+                backupDataToCloud();
+                break;
+            case R.id.drawerItemRestoreData:
+                RestoreDataFromCloud();
+                break;
+            case R.id.drawerItemAbout:
+                break;
+        }
+        mDrawerLayout.closeDrawer(GravityCompat.START);
+        return true;
     }
 }

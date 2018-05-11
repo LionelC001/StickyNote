@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="none"
+        android:id="@+id/drawer_up">
+        <item
+            android:id="@+id/drawerItemBackground"
+            android:icon="@drawable/wallpaper"
+            android:title="Choose Wallpaper" />
+
+        <item
+            android:id="@+id/drawerItemBackupDataToCloud"
+            android:icon="@drawable/backup"
+            android:title="Backup Data to Cloud" />
+
+        <item
+            android:icon="@drawable/download"
+            android:id="@+id/drawerItemRestoreData"
+            android:title="Restore Data from Cloud" />
+    </group>
+
+    <group  android:id="@+id/drawer_bottom">
+        <item
+            android:icon="@drawable/info"
+            android:id="@+id/drawerItemAbout"
+            android:title="About" />
+    </group>
+</menu>

@@ -72,7 +72,13 @@ public class PaperContentDbHelper extends SQLiteOpenHelper {
     }
 
     public void deletePaper(String paperName) {
-        mPaperContentDb.delete(TABLE_NAME, "paper_name=?", new String[]{paperName});
+        Cursor c = mPaperContentDb.rawQuery("select DISTINCT tbl_name from sqlite_master where tbl_name = '"+TABLE_NAME+"'", null);
+        if(c!=null) {
+            if(c.getCount()>0) {
+                mPaperContentDb.delete(TABLE_NAME, "paper_name=?", new String[]{paperName});
+            }
+            c.close();
+        }
     }
 
     public void deleteALLPaper() {

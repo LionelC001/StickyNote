@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/menuItemBackground"
-        android:title="Choose Wallpaper"
-        android:icon="@drawable/wallpaper"
-        app:showAsAction="always" />
 
     <item
         android:id="@+id/menuItemResetBackground"
@@ -13,23 +8,7 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/menuItemBackupDataToCloud"
-        android:title="Backup Data to Cloud"
-        android:icon="@drawable/backup"
-        app:showAsAction="always" />
-
-    <item
-        android:id="@+id/menuItemRestoreData"
-        android:title="Restore Data from Cloud"
-        app:showAsAction="never" />
-
-
-    <item
         android:id="@+id/menuItemIntroPage"
         android:title="Intro Page"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menuItemAbout"
-        android:title="About"
         app:showAsAction="never" />
 </menu>
