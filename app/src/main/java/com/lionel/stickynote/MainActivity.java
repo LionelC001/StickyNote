@@ -33,7 +33,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.transition.Transition;
 import android.transition.TransitionInflater;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -210,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                     Toast.makeText(this, "Login successfully!", Toast.LENGTH_SHORT).show();
                     setupUserDisplay();
                     break;
-                default:
+                case REQUEST_CODE_FOR_OPEN_CONTENT:
                     isReenter = true;
                     break;
             }
@@ -391,15 +390,17 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     }
 
     private void backupDataToCloud() {
-        final FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Backup")
-                    .setMessage("Are you sure you want to upload data to cloud? \n\n(If you do, you'll lose the last saved data in Cloud.)\n")
-                    .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            if (isNetworkAvailable()) {
+        // check network connection
+        if (isNetworkAvailable()) {
+            final FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
+            // check if log or not
+            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                new AlertDialog.Builder(this)
+                        .setTitle("Backup")
+                        .setMessage("Are you sure you want to upload data to cloud? \n\n(If you do, you'll lose the last saved data in Cloud.)\n")
+                        .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
                                 // show loading screen
                                 AlertDialog.Builder adBuilder = new AlertDialog.Builder(MainActivity.this);
                                 AlertDialog progress = adBuilder.create();
@@ -413,22 +414,19 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                                         WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
                                 readWriteCloudHelper.WriteToCloud(mPicUri, mPaperIdNow, mPaperPropertyArrayList, progress);
-                            } else
-                                Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
-
-                        }
-                    })
-                    .setNegativeButton("No", null)
-                    .setCancelable(true)
-                    .show();
-        } else {
-            Toast.makeText(this, "You need to login your account!", Toast.LENGTH_SHORT).show();
-            readWriteCloudHelper.Login();
-        }
+                            }
+                        }).setNegativeButton("No", null)
+                        .setCancelable(true)
+                        .show();
+            } else {
+                Toast.makeText(this, "You need to login your account!", Toast.LENGTH_SHORT).show();
+                readWriteCloudHelper.Login();
+            }
+        } else
+            Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
     }
 
     private void RestoreDataFromCloud() {
-
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
                 PackageManager.PERMISSION_GRANTED) {
@@ -436,38 +434,44 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     REQUEST_PERMISSION_FOR_RESTORE_DATA);
         } else {
-            final FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
-            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                new AlertDialog.Builder(this)
-                        .setTitle("Restore")
-                        .setMessage("Are you sure to restore the data you saved last time? \n\n(if you do, the current data will be lost.)\n")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (isNetworkAvailable()) {
-                                    // show loading screen
-                                    AlertDialog.Builder adBuilder = new AlertDialog.Builder(MainActivity.this);
-                                    AlertDialog progress = adBuilder.create();
-                                    View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.progress_dialog, null);
-                                    ((TextView) view.findViewById(R.id.txtViewProgressTitle)).setText("Restore");
-                                    ((TextView) view.findViewById(R.id.txtViewPregressMessage)).setText("Wait while Loading...");
-                                    ((ProgressBar) view.findViewById(R.id.progressBar)).getIndeterminateDrawable().setColorFilter(Color.parseColor("#FFFF345A"), PorterDuff.Mode.MULTIPLY);
-                                    progress.setView(view);
-                                    progress.show();
-                                    getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                                            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+            // check network connection
+            if (isNetworkAvailable()) {
+                final FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
+                // check if log or not
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Restore")
+                            .setMessage("Are you sure to restore the data you saved last time? \n\n(if you do, the current data will be lost.)\n")
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (isNetworkAvailable()) {
+                                        // show loading screen
+                                        AlertDialog.Builder adBuilder = new AlertDialog.Builder(MainActivity.this);
+                                        AlertDialog progress = adBuilder.create();
+                                        View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.progress_dialog, null);
+                                        ((TextView) view.findViewById(R.id.txtViewProgressTitle)).setText("Restore");
+                                        ((TextView) view.findViewById(R.id.txtViewPregressMessage)).setText("Wait while Loading...");
+                                        ((ProgressBar) view.findViewById(R.id.progressBar)).getIndeterminateDrawable().setColorFilter(Color.parseColor("#FFFF345A"), PorterDuff.Mode.MULTIPLY);
+                                        progress.setView(view);
+                                        progress.show();
+                                        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                                                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
-                                    readWriteCloudHelper.ReadFromCloud(progress);
-                                } else
-                                    Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
-                            }
-                        })
-                        .setNegativeButton("No", null)
-                        .setCancelable(true)
-                        .show();
+                                        readWriteCloudHelper.ReadFromCloud(progress);
+                                    } else
+                                        Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
+                                }
+                            })
+                            .setNegativeButton("No", null)
+                            .setCancelable(true)
+                            .show();
+                } else {
+                    Toast.makeText(this, "You need to login your account!", Toast.LENGTH_SHORT).show();
+                    readWriteCloudHelper.Login();
+                }
             } else {
-                Toast.makeText(this, "You need to login your account!", Toast.LENGTH_SHORT).show();
-                readWriteCloudHelper.Login();
+                Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -528,7 +532,10 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                 new FirebaseCloudHelper(MainActivity.this).Logout();
                 break;
             case R.id.drawerItemLogin:
-                new FirebaseCloudHelper(MainActivity.this).Login();
+                if (isNetworkAvailable())
+                    new FirebaseCloudHelper(MainActivity.this).Login();
+                else
+                    Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
                 break;
         }
         mDrawerLayout.closeDrawer(GravityCompat.START);

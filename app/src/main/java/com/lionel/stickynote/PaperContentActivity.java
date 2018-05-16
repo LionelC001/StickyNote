@@ -26,8 +26,8 @@ import com.google.gson.reflect.TypeToken;
 import com.lionel.stickynote.adapter.RecyclerContentListAdapter;
 import com.lionel.stickynote.customview.ColorPickerBlock;
 import com.lionel.stickynote.fieldclass.PaperProperty;
-import com.lionel.stickynote.helper.SimpleItemTouchHelper;
 import com.lionel.stickynote.helper.PaperContentDbHelper;
+import com.lionel.stickynote.helper.SimpleItemTouchHelper;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
@@ -162,7 +162,7 @@ public class PaperContentActivity extends AppCompatActivity {
         cv.put("theme_index", mThemeIndex);
         // check whether it should insert or not
         if (mCursor.getCount() == 0) mPaperContentDbHelper.insert(TABLE_NAME, null, cv);
-        else mPaperContentDbHelper.update(TABLE_NAME, cv, "paper_name=?", new String[] {paper_name});
+        else mPaperContentDbHelper.update(TABLE_NAME, cv, "paper_name=?", new String[]{paper_name});
     }
 
     private void savePropertyToSP() {
@@ -262,5 +262,11 @@ public class PaperContentActivity extends AppCompatActivity {
 
         // set Item's background, text, index color
         setupRecyclerView();
+    }
+
+    @Override
+    public void onBackPressed() {
+        setResult(RESULT_OK);
+        super.onBackPressed();
     }
 }

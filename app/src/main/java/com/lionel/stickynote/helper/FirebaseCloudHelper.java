@@ -1,6 +1,5 @@
 package com.lionel.stickynote.helper;
 
-import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -72,6 +71,8 @@ public class FirebaseCloudHelper {
                 AuthUI.getInstance()
                         .createSignInIntentBuilder()
                         .setAvailableProviders(providers)
+                        .setLogo(R.drawable.app_icon)
+                        .setTheme(R.style.AppTheme)
                         .build(),
                 REQUEST_CODE_FOR_AUTH);
     }
