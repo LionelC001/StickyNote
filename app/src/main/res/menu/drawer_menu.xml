@@ -1,27 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:checkableBehavior="none"
-        android:id="@+id/drawer_up">
-        <item
-            android:id="@+id/drawerItemBackground"
-            android:icon="@drawable/wallpaper"
-            android:title="Choose Wallpaper" />
+    <item android:title="Wallpaper">
+        <menu>
+            <group
+                android:id="@+id/drawer_up"
+                android:checkableBehavior="none">
+                <item
+                    android:id="@+id/drawerItemBackground"
+                    android:icon="@drawable/wallpaper"
+                    android:title="Choose Wallpaper" />
 
-        <item
-            android:id="@+id/drawerItemBackupDataToCloud"
-            android:icon="@drawable/backup"
-            android:title="Backup Data to Cloud" />
+                <item
+                    android:id="@+id/drawerItemResetBackground"
+                    android:icon="@drawable/reset"
+                    android:title="Rest Wallpaper" />
+            </group>
+        </menu>
+    </item>
 
-        <item
-            android:icon="@drawable/download"
-            android:id="@+id/drawerItemRestoreData"
-            android:title="Restore Data from Cloud" />
-    </group>
 
-    <group  android:id="@+id/drawer_bottom">
+    <item android:title="Cloud">
+        <menu>
+            <group
+                android:id="@+id/group_middle"
+                android:checkableBehavior="none">
+                <item
+                    android:id="@+id/drawerItemBackupDataToCloud"
+                    android:icon="@drawable/backup"
+                    android:title="Backup Data to Cloud" />
+
+                <item
+                    android:id="@+id/drawerItemRestoreData"
+                    android:icon="@drawable/download"
+                    android:title="Restore Data from Cloud" />
+            </group>
+        </menu>
+    </item>
+
+    <group android:id="@+id/drawer_bottom">
         <item
+            android:id="@+id/drawerItemIntroPage"
             android:icon="@drawable/info"
-            android:id="@+id/drawerItemAbout"
-            android:title="About" />
+            android:title="Intro Page" />
     </group>
+
+    <item
+        android:id="@+id/drawerItemLogout"
+        android:title="Logout" />
+
+    <item
+        android:id="@+id/drawerItemLogin"
+        android:title="Login" />
 </menu>

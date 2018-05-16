@@ -23,7 +23,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/navigation/ic_menu_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/action/ic_account_circle_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -34,11 +34,11 @@
                         <option name="values">
                           <map>
                             <entry key="color" value="ffffff" />
-                            <entry key="height" value="32" />
-                            <entry key="outputName" value="meny" />
+                            <entry key="height" value="56" />
+                            <entry key="outputName" value="account_circle" />
                             <entry key="overrideSize" value="true" />
                             <entry key="sourceFile" value="C:\Users\Lionel" />
-                            <entry key="width" value="32" />
+                            <entry key="width" value="56" />
                           </map>
                         </option>
                       </PersistentState>

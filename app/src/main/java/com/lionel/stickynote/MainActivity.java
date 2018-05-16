@@ -3,7 +3,6 @@ package com.lionel.stickynote;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActivityOptions;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,7 +10,11 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -30,20 +33,29 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.transition.Transition;
 import android.transition.TransitionInflater;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.lionel.stickynote.customview.Paper;
 import com.lionel.stickynote.fieldclass.PaperProperty;
 import com.lionel.stickynote.helper.FirebaseCloudHelper;
 import com.lionel.stickynote.helper.PaperContentDbHelper;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Transformation;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -53,7 +65,7 @@ import java.util.ArrayList;
 import static com.lionel.stickynote.helper.PaperContentDbHelper.DB_NAME;
 
 
-public class MainActivity extends AppCompatActivity implements Paper.DeletePaperInterface, Paper.OpenPaperContent, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements Paper.DeletePaperInterface, Paper.OpenPaperContent, NavigationView.OnNavigationItemSelectedListener, FirebaseCloudHelper.resetUserInterface {
     private static final int REQUEST_CODE_FOR_OPEN_CONTENT = 100;
     private static final int REQUEST_CODE_FOR_PICK_PHOTO_ = 200;
     private static final int REQUEST_CODE_FOR_CROP_PHOTO = 300;
@@ -67,9 +79,11 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     private int mChildViewCount, mPaperIdNow;
     private boolean isReenter;
     public static double iDeleteRegionX, iDeleteRegionY;
-    private ImageView mImgViewTrashCan;
+    private ImageView mImgViewTrashCan, mImgViewHeaderProfile;
+    private TextView mTxtViewHeaderName, mTxtViewHeaderEmail;
     private String mPicUri;
     private DrawerLayout mDrawerLayout;
+    public NavigationView mNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,8 +95,11 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         mChildViewCount = mRootView.getChildCount();
         mPaperPropertyArrayList = new ArrayList<>();
         mDrawerLayout = findViewById(R.id.drawerLayout);
-        NavigationView navigationView = findViewById(R.id.navigationView);
-        navigationView.setNavigationItemSelectedListener(this);
+        mNavigationView = findViewById(R.id.navigationView);
+        mNavigationView.setNavigationItemSelectedListener(this);
+        mImgViewHeaderProfile = mNavigationView.getHeaderView(0).findViewById(R.id.imgViewHeaderProfile);
+        mTxtViewHeaderName = mNavigationView.getHeaderView(0).findViewById(R.id.txtViewHeaderName);
+        mTxtViewHeaderEmail = mNavigationView.getHeaderView(0).findViewById(R.id.txtViewHeaderEmail);
 
         final Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -114,6 +131,17 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
             Log.d("<<<", "\n" + entry.getKey() + ": " + entry.getValue().toString());
         }*/
+
+        // check is there current user now
+        // set user's profile
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            setupUserDisplay();
+            mNavigationView.getMenu().findItem(R.id.drawerItemLogout).setVisible(true);
+            mNavigationView.getMenu().findItem(R.id.drawerItemLogin).setVisible(false);
+        } else {
+            mNavigationView.getMenu().findItem(R.id.drawerItemLogout).setVisible(false);
+            mNavigationView.getMenu().findItem(R.id.drawerItemLogin).setVisible(true);
+        }
     }
 
     @Override
@@ -146,26 +174,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
             case android.R.id.home:
                 mDrawerLayout.openDrawer(GravityCompat.START);
                 break;
-            case R.id.menuItemResetBackground:
-                new AlertDialog.Builder(this)
-                        .setTitle("Reset WallPaper")
-                        .setMessage("Your wallpaper will be blank, is it ok?")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                mRootView.setBackgroundColor(Color.parseColor("#ffffff"));
-                                SharedPreferences.Editor sp = getSharedPreferences("MainData", MODE_PRIVATE).edit();
-                                sp.remove("PicUri");
-                                sp.apply();
-                                mPicUri = null;
-                            }
-                        })
-                        .setNegativeButton("NO", null)
-                        .setCancelable(true)
-                        .show();
-                break;
-            case R.id.menuItemIntroPage:
-                startActivity(new Intent(this, IntroPageActivity.class));
+            case R.id.menuItemAbout:
                 break;
         }
         return true;
@@ -173,32 +182,38 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case REQUEST_CODE_FOR_PICK_PHOTO_:
-                if (data != null) cropPhoto(data.getData());
-                break;
-            case REQUEST_CODE_FOR_CROP_PHOTO:
-                if (data != null) {
-                    Uri cropUri = data.getData();
-                    if (cropUri != null) {
-                        Intent it = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, cropUri);
-                        sendBroadcast(it);
-                        try {
-                            Bitmap cropBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(cropUri), null, null);
-                            mRootView.setBackground(new BitmapDrawable(getResources(), cropBitmap));
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                            Toast.makeText(this, "Can not find file", Toast.LENGTH_LONG).show();
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_CODE_FOR_PICK_PHOTO_:
+                    if (data != null) cropPhoto(data.getData());
+                    break;
+                case REQUEST_CODE_FOR_CROP_PHOTO:
+                    if (data != null) {
+                        Uri cropUri = data.getData();
+                        if (cropUri != null) {
+                            Intent it = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, cropUri);
+                            sendBroadcast(it);
+                            try {
+                                Bitmap cropBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(cropUri), null, null);
+                                mRootView.setBackground(new BitmapDrawable(getResources(), cropBitmap));
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                                Toast.makeText(this, "Can not find file", Toast.LENGTH_LONG).show();
+                            }
+                            getSharedPreferences("MainData", MODE_PRIVATE).edit()
+                                    .putString("PicUri", cropUri.toString()).apply();
+                            mPicUri = cropUri.toString();
                         }
-                        getSharedPreferences("MainData", MODE_PRIVATE).edit()
-                                .putString("PicUri", cropUri.toString()).apply();
-                        mPicUri = cropUri.toString();
                     }
-                }
-                break;
-            default:
-                isReenter = true;
-                break;
+                    break;
+                case FirebaseCloudHelper.REQUEST_CODE_FOR_AUTH:
+                    Toast.makeText(this, "Login successfully!", Toast.LENGTH_SHORT).show();
+                    setupUserDisplay();
+                    break;
+                default:
+                    isReenter = true;
+                    break;
+            }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -337,7 +352,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         PaperProperty mPp = new PaperProperty(mPaperIdNow, null,
                 new String[]{null, null, null, null},
                 "#E1626262",
-                new float[]{0, 0});
+                new float[]{0, toolbarHeight});
         Paper paper = new Paper(this, mPp);
         mPaperPropertyArrayList.add(mPp);
         paper.setX(0);
@@ -376,32 +391,44 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
     }
 
     private void backupDataToCloud() {
-        new AlertDialog.Builder(this)
-                .setTitle("Backup")
-                .setMessage("Are you sure you want to upload data to cloud? \n\n(If you do, you'll lose the last saved data in Cloud.)\n")
-                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (isNetworkAvailable()) {
-                            ProgressDialog progress = new ProgressDialog(MainActivity.this);
-                            progress.setTitle("Backup");
-                            progress.setMessage("Wait while Updating...");
-                            progress.setCancelable(false);
-                            progress.show();
+        final FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Backup")
+                    .setMessage("Are you sure you want to upload data to cloud? \n\n(If you do, you'll lose the last saved data in Cloud.)\n")
+                    .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (isNetworkAvailable()) {
+                                // show loading screen
+                                AlertDialog.Builder adBuilder = new AlertDialog.Builder(MainActivity.this);
+                                AlertDialog progress = adBuilder.create();
+                                View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.progress_dialog, null);
+                                ((TextView) view.findViewById(R.id.txtViewProgressTitle)).setText("Backup");
+                                ((TextView) view.findViewById(R.id.txtViewPregressMessage)).setText("Wait while Updating...");
+                                ((ProgressBar) view.findViewById(R.id.progressBar)).getIndeterminateDrawable().setColorFilter(Color.parseColor("#FFFF345A"), PorterDuff.Mode.MULTIPLY);
+                                progress.setView(view);
+                                progress.show();
+                                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
-                            FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
-                            readWriteCloudHelper.WriteToCloud(mPicUri, mPaperIdNow, mPaperPropertyArrayList, progress);
-                        } else
-                            Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
+                                readWriteCloudHelper.WriteToCloud(mPicUri, mPaperIdNow, mPaperPropertyArrayList, progress);
+                            } else
+                                Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
 
-                    }
-                })
-                .setNegativeButton("No", null)
-                .setCancelable(true)
-                .show();
+                        }
+                    })
+                    .setNegativeButton("No", null)
+                    .setCancelable(true)
+                    .show();
+        } else {
+            Toast.makeText(this, "You need to login your account!", Toast.LENGTH_SHORT).show();
+            readWriteCloudHelper.Login();
+        }
     }
 
     private void RestoreDataFromCloud() {
+
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
                 PackageManager.PERMISSION_GRANTED) {
@@ -409,28 +436,39 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     REQUEST_PERMISSION_FOR_RESTORE_DATA);
         } else {
-            new AlertDialog.Builder(this)
-                    .setTitle("Restore")
-                    .setMessage("Are you sure to restore the data you saved last time? \n\n(if you do, the current data will be lost.)\n")
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            if (isNetworkAvailable()) {
-                                ProgressDialog progress = new ProgressDialog(MainActivity.this);
-                                progress.setTitle("Restore");
-                                progress.setMessage("Wait while loading...");
-                                progress.setCancelable(false);
-                                progress.show();
+            final FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
+            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                new AlertDialog.Builder(this)
+                        .setTitle("Restore")
+                        .setMessage("Are you sure to restore the data you saved last time? \n\n(if you do, the current data will be lost.)\n")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (isNetworkAvailable()) {
+                                    // show loading screen
+                                    AlertDialog.Builder adBuilder = new AlertDialog.Builder(MainActivity.this);
+                                    AlertDialog progress = adBuilder.create();
+                                    View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.progress_dialog, null);
+                                    ((TextView) view.findViewById(R.id.txtViewProgressTitle)).setText("Restore");
+                                    ((TextView) view.findViewById(R.id.txtViewPregressMessage)).setText("Wait while Loading...");
+                                    ((ProgressBar) view.findViewById(R.id.progressBar)).getIndeterminateDrawable().setColorFilter(Color.parseColor("#FFFF345A"), PorterDuff.Mode.MULTIPLY);
+                                    progress.setView(view);
+                                    progress.show();
+                                    getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                                            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
-                                FirebaseCloudHelper readWriteCloudHelper = new FirebaseCloudHelper(MainActivity.this);
-                                readWriteCloudHelper.ReadFromCloud(progress);
-                            } else
-                                Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
-                        }
-                    })
-                    .setNegativeButton("No", null)
-                    .setCancelable(true)
-                    .show();
+                                    readWriteCloudHelper.ReadFromCloud(progress);
+                                } else
+                                    Toast.makeText(MainActivity.this, "Need internet connection!", Toast.LENGTH_LONG).show();
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .setCancelable(true)
+                        .show();
+            } else {
+                Toast.makeText(this, "You need to login your account!", Toast.LENGTH_SHORT).show();
+                readWriteCloudHelper.Login();
+            }
         }
     }
 
@@ -458,16 +496,98 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
                     pickPhoto();
                 }
                 break;
+            case R.id.drawerItemResetBackground:
+                new AlertDialog.Builder(this)
+                        .setTitle("Reset WallPaper")
+                        .setMessage("Your wallpaper will be blank, is it ok?")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mRootView.setBackgroundColor(Color.parseColor("#ffffff"));
+                                SharedPreferences.Editor sp = getSharedPreferences("MainData", MODE_PRIVATE).edit();
+                                sp.remove("PicUri");
+                                sp.apply();
+                                mPicUri = null;
+                            }
+                        })
+                        .setNegativeButton("NO", null)
+                        .setCancelable(true)
+                        .show();
+                break;
+
             case R.id.drawerItemBackupDataToCloud:
                 backupDataToCloud();
                 break;
             case R.id.drawerItemRestoreData:
                 RestoreDataFromCloud();
                 break;
-            case R.id.drawerItemAbout:
+            case R.id.drawerItemIntroPage:
+                startActivity(new Intent(this, IntroPageActivity.class));
+                break;
+            case R.id.drawerItemLogout:
+                new FirebaseCloudHelper(MainActivity.this).Logout();
+                break;
+            case R.id.drawerItemLogin:
+                new FirebaseCloudHelper(MainActivity.this).Login();
                 break;
         }
         mDrawerLayout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void setupUserDisplay() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            mTxtViewHeaderName.setText(user.getProviderData().get(0).getDisplayName());
+            mTxtViewHeaderEmail.setText(user.getProviderData().get(0).getEmail());
+
+            // set user's profile photo in circle shape
+            Picasso.get()
+                    .load(user.getProviderData().get(0).getPhotoUrl())
+                    .transform(new Transformation() {
+                        @Override
+                        public Bitmap transform(Bitmap source) {
+                            int size = Math.min(source.getWidth(), source.getHeight());
+
+                            int x = (source.getWidth() - size) / 2;
+                            int y = (source.getHeight() - size) / 2;
+
+                            Bitmap squaredBitmap = Bitmap.createBitmap(source, x, y, size, size);
+                            if (squaredBitmap != source) {
+                                source.recycle();
+                            }
+
+                            Bitmap bitmap = Bitmap.createBitmap(size, size, source.getConfig());
+
+                            Canvas canvas = new Canvas(bitmap);
+                            Paint paint = new Paint();
+                            BitmapShader shader = new BitmapShader(squaredBitmap, BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
+                            paint.setShader(shader);
+                            paint.setAntiAlias(true);
+
+                            float r = size / 2f;
+                            canvas.drawCircle(r, r, r, paint);
+
+                            squaredBitmap.recycle();
+                            return bitmap;
+                        }
+
+                        @Override
+                        public String key() {
+                            return "circle";
+                        }
+                    })
+                    .into(mImgViewHeaderProfile);
+        }
+    }
+
+    @Override
+    public void resetUser() {
+        Toast.makeText(this, "Logout successfully!", Toast.LENGTH_LONG).show();
+        mNavigationView.getMenu().findItem(R.id.drawerItemLogout).setVisible(false);
+        mNavigationView.getMenu().findItem(R.id.drawerItemLogin).setVisible(true);
+        mImgViewHeaderProfile.setImageDrawable(null);
+        mTxtViewHeaderName.setText("");
+        mTxtViewHeaderEmail.setText("");
     }
 }

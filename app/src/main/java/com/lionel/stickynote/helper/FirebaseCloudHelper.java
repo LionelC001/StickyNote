@@ -5,14 +5,17 @@ import android.content.ContentValues;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
-import android.util.Log;
-import android.view.View;
+import android.support.v7.app.AlertDialog;
+import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -28,24 +31,63 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static android.content.Context.MODE_PRIVATE;
-import static android.view.View.GONE;
 import static com.lionel.stickynote.helper.PaperContentDbHelper.DB_NAME;
 import static com.lionel.stickynote.helper.PaperContentDbHelper.TABLE_NAME;
 
 public class FirebaseCloudHelper {
+    public static final int REQUEST_CODE_FOR_AUTH = 777;
     private final MainActivity mActivity;
     private final FirebaseFirestore mFireStoreDB;
+    private final FirebaseAuth mAuth;
+    private String user;
+
+    public interface resetUserInterface {
+        void resetUser();
+    }
 
     public FirebaseCloudHelper(MainActivity activity) {
         mActivity = activity;
         mFireStoreDB = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser != null) {
+            user = firebaseUser.getProviderData().get(0).getEmail();
+        }
     }
 
-    public void WriteToCloud(String mPicUri, int mPaperIdNow, ArrayList<PaperProperty> mPaperPropertyArrayList, final ProgressDialog progressDialog) {
+    public void Login() {
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.EmailBuilder().build(),
+                new AuthUI.IdpConfig.GoogleBuilder().build(),
+                new AuthUI.IdpConfig.Builder(AuthUI.FACEBOOK_PROVIDER).build());
+
+        mActivity.startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(providers)
+                        .build(),
+                REQUEST_CODE_FOR_AUTH);
+    }
+
+    public void Logout() {
+        AuthUI.getInstance()
+                .signOut(mActivity)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        mActivity.resetUser();
+                    }
+                });
+    }
+
+    public void WriteToCloud(String mPicUri, int mPaperIdNow, ArrayList<PaperProperty> mPaperPropertyArrayList, final AlertDialog progressDialog) {
         WriteBatch batch = mFireStoreDB.batch();
         // write SharedPreferences data to FireStore
         Map<String, Object> SPData = new HashMap<>();
@@ -55,7 +97,7 @@ public class FirebaseCloudHelper {
         Gson gson = new Gson();
         String jsonSP = gson.toJson(mPaperPropertyArrayList);
         SPData.put("PaperProperty", jsonSP);
-        DocumentReference SPDataRef = mFireStoreDB.collection("users").document("user2")
+        DocumentReference SPDataRef = mFireStoreDB.collection("users").document(user)
                 .collection("Data").document("SharedPreference");
         batch.set(SPDataRef, SPData);
 
@@ -82,7 +124,7 @@ public class FirebaseCloudHelper {
         }
         Map<String, Object> SQLiteData = new HashMap<>();
         SQLiteData.put("sqlite_data", result.toString());
-        DocumentReference SQLiteDataRef = mFireStoreDB.collection("users").document("user2")
+        DocumentReference SQLiteDataRef = mFireStoreDB.collection("users").document(user)
                 .collection("Data").document("SQLite");
         batch.set(SQLiteDataRef, SQLiteData);
 
@@ -92,6 +134,7 @@ public class FirebaseCloudHelper {
                     public void onSuccess(Void aVoid) {
                         Toast.makeText(mActivity, "Successfully uploaded!", Toast.LENGTH_LONG).show();
                         progressDialog.dismiss();
+                        mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     }
                 })
                 .addOnFailureListener(mActivity, new OnFailureListener() {
@@ -99,14 +142,15 @@ public class FirebaseCloudHelper {
                     public void onFailure(@NonNull Exception e) {
                         Toast.makeText(mActivity, "Uploading failed..", Toast.LENGTH_LONG).show();
                         progressDialog.dismiss();
+                        mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                     }
                 });
     }
 
-    public void ReadFromCloud(final ProgressDialog progressDialog) {
+    public void ReadFromCloud(final AlertDialog progressDialog) {
         // fetch SharedPreference and SQLite data from cloud
         FirebaseFirestore fireStoreDB = FirebaseFirestore.getInstance();
-        fireStoreDB.collection("users").document("user2").collection("Data")
+        fireStoreDB.collection("users").document(user).collection("Data")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -150,9 +194,11 @@ public class FirebaseCloudHelper {
                                 }
                             }
                             progressDialog.dismiss();
+                            mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                             Toast.makeText(mActivity, "Successfully restored!", Toast.LENGTH_LONG).show();
                         } else {
                             progressDialog.dismiss();
+                            mActivity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                             Toast.makeText(mActivity, "Restoring failed..", Toast.LENGTH_LONG).show();
                         }
                     }

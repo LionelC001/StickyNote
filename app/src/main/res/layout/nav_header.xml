@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#2a86e9"
-    android:padding="15dp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="15dp">
 
     <ImageView
         android:id="@+id/imgViewHeaderProfile"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_margin="12dp"
-        android:src="@android:mipmap/sym_def_app_icon" />
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_margin="5dp" />
 
     <TextView
         android:id="@+id/txtViewHeaderName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="This is Name"
         android:textColor="#ffffff"
         android:textSize="20sp" />
 
@@ -25,7 +24,6 @@
         android:id="@+id/txtViewHeaderEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="This is address"
         android:textColor="#ffffff"
-        android:textSize="18sp" />
+        android:textSize="16sp" />
 </LinearLayout>
