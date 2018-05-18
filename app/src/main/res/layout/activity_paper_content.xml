@@ -52,10 +52,19 @@
             app:fab_title="Change Color" />
 
         <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnShare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onShare"
+            app:fab_icon="@drawable/share"
+            app:fab_size="mini"
+            app:fab_title="Change Color" />
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnClear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="clear"
+            android:onClick="onClear"
             app:fab_icon="@drawable/trashcan"
             app:fab_size="mini"
             app:fab_title="Clear All" />

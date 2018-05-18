@@ -3,7 +3,7 @@
     <item android:title="Wallpaper">
         <menu>
             <group
-                android:id="@+id/drawer_up"
+                android:id="@+id/drawer_top"
                 android:checkableBehavior="none">
                 <item
                     android:id="@+id/drawerItemBackground"

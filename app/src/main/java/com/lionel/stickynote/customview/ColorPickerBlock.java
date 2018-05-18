@@ -38,7 +38,9 @@ public class ColorPickerBlock extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        // outer round rect
         canvas.drawRoundRect(getWidth() / 2 - 150, getHeight() / 2 - 100, getWidth() / 2 + 150, getHeight() / 2 + 100, 50, 50, mPaint);
+        // inner round rect
         mPaint.setColor(Color.parseColor(mColorF));
         canvas.drawRoundRect(getWidth() / 2 - 100, getHeight() / 2 - 50, getWidth() / 2 + 100, getHeight() / 2 + 50, 50, 50, mPaint);
     }

@@ -3,6 +3,7 @@ package com.lionel.stickynote;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -204,9 +205,9 @@ public class PaperContentActivity extends AppCompatActivity {
         mRecyclerAdapter.notifyDataSetChanged();
     }
 
-    public void clear(View view) {
+    public void onClear(View view) {
         new AlertDialog.Builder(this)
-                .setMessage("Are you sure for clear all items?")
+                .setMessage("Are you sure for onClear all items?")
                 .setCancelable(true)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
@@ -217,6 +218,22 @@ public class PaperContentActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("No", null)
                 .show();
+    }
+
+    public void onShare(View view) {
+        int j = 0;
+        StringBuilder strList = new StringBuilder(
+                "Hi, I want to do these things with you. Let's go!\n\n");
+        for (int i = 0; i < mContentItemList.size(); i++) {
+            if (!mContentItemList.get(i).equals("")) {
+                strList.append(j + 1).append(". ").append(mContentItemList.get(i)).append("\n");
+                j++;
+            }
+        }
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_TEXT, strList.toString());
+        startActivity(Intent.createChooser(intent, "Share To-Do list"));
     }
 
     public void setupColorPicker(View view) {
@@ -258,6 +275,8 @@ public class PaperContentActivity extends AppCompatActivity {
         ((FloatingActionButton) findViewById(R.id.btnClear))
                 .setColorNormal(Color.parseColor(mColorTheme[mThemeIndex][3]));
         ((FloatingActionButton) findViewById(R.id.btnChangeColor))
+                .setColorNormal(Color.parseColor(mColorTheme[mThemeIndex][3]));
+        ((FloatingActionButton) findViewById(R.id.btnShare))
                 .setColorNormal(Color.parseColor(mColorTheme[mThemeIndex][3]));
 
         // set Item's background, text, index color
