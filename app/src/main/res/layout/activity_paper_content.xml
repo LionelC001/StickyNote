@@ -58,7 +58,7 @@
             android:onClick="onShare"
             app:fab_icon="@drawable/share"
             app:fab_size="mini"
-            app:fab_title="Change Color" />
+            app:fab_title="Share" />
 
         <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnClear"
