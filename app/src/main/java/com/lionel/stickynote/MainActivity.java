@@ -15,7 +15,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -32,11 +31,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
-import android.text.method.LinkMovementMethod;
-import android.text.style.StyleSpan;
-import android.text.util.Linkify;
 import android.transition.Transition;
 import android.transition.TransitionInflater;
 import android.view.LayoutInflater;
@@ -303,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
             mPaperPropertyArrayList = gson.fromJson(json, type);
         }
         // get Paper id from sharedPreferences
-        if (mPaperIdNow == 0) mPaperIdNow = sharedPreferences.getInt("PaperIdNow", 0);
+        mPaperIdNow = sharedPreferences.getInt("PaperIdNow", 0);
 
         // setup papers
         for (int i = 0; i < mPaperPropertyArrayList.size(); i++) {
