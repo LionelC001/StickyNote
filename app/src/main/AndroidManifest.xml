@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <meta-data tools:replace="android:value" android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
-        <activity android:name=".MainActivity">
+        <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,13 +24,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".PaperContentActivity"
+            android:name=".activities.PaperContentActivity"
             android:theme="@style/PaperContentTheme">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".IntroPageActivity"
+        <activity android:name=".activities.IntroPageActivity"
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"/>
     </application>
 

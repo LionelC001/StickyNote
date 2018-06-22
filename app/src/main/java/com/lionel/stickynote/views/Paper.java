@@ -1,4 +1,4 @@
-package com.lionel.stickynote.customview;
+package com.lionel.stickynote.views;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -14,7 +14,7 @@ import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import com.lionel.stickynote.MainActivity;
+import com.lionel.stickynote.activities.MainActivity;
 import com.lionel.stickynote.R;
 import com.lionel.stickynote.fieldclass.PaperProperty;
 

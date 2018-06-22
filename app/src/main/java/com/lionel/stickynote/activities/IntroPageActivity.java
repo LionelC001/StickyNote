@@ -1,4 +1,4 @@
-package com.lionel.stickynote;
+package com.lionel.stickynote.activities;
 
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.lionel.stickynote.R;
 import com.lionel.stickynote.adapter.IntroPageAdapter;
 
 import java.util.ArrayList;

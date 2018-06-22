@@ -7,7 +7,7 @@
     android:id="@+id/contentRootView"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    tools:context=".PaperContentActivity">
+    tools:context=".activities.PaperContentActivity">
 
     <LinearLayout
         android:id="@+id/linLay"

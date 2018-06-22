@@ -1,4 +1,4 @@
-package com.lionel.stickynote;
+package com.lionel.stickynote.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -49,7 +49,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.lionel.stickynote.customview.Paper;
+import com.lionel.stickynote.R;
+import com.lionel.stickynote.views.Paper;
 import com.lionel.stickynote.fieldclass.PaperProperty;
 import com.lionel.stickynote.helper.FirebaseCloudHelper;
 import com.lionel.stickynote.helper.PaperContentDbHelper;

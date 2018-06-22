@@ -1,4 +1,4 @@
-package com.lionel.stickynote;
+package com.lionel.stickynote.activities;
 
 import android.app.Dialog;
 import android.content.ContentValues;
@@ -24,8 +24,9 @@ import android.widget.TableRow;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.lionel.stickynote.R;
 import com.lionel.stickynote.adapter.RecyclerContentListAdapter;
-import com.lionel.stickynote.customview.ColorPickerBlock;
+import com.lionel.stickynote.views.ColorPickerBlock;
 import com.lionel.stickynote.fieldclass.PaperProperty;
 import com.lionel.stickynote.helper.PaperContentDbHelper;
 import com.lionel.stickynote.helper.SimpleItemTouchHelper;

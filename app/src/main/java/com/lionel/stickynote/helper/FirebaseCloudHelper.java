@@ -21,7 +21,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
 import com.google.gson.Gson;
-import com.lionel.stickynote.MainActivity;
+import com.lionel.stickynote.activities.MainActivity;
 import com.lionel.stickynote.R;
 import com.lionel.stickynote.fieldclass.PaperProperty;
 
