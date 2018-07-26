@@ -36,7 +36,7 @@ public class IntroPageActivity extends AppCompatActivity {
     }
 
     private void setDots() {
-        final LinearLayout ll = findViewById(R.id.dot_linlayout);
+        final LinearLayout lLayout = findViewById(R.id.dot_linlayout);
         ImageView dot1 = new ImageView(this);
         ImageView dot2 = new ImageView(this);
         ImageView dot3 = new ImageView(this);
@@ -50,16 +50,16 @@ public class IntroPageActivity extends AppCompatActivity {
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         params.setMargins(0, 0, 60, 0);
-        ll.addView(dot1, params);
-        ll.addView(dot2, params);
-        ll.addView(dot3, params);
-        ll.addView(dot4, params);
+        lLayout.addView(dot1, params);
+        lLayout.addView(dot2, params);
+        lLayout.addView(dot3, params);
+        lLayout.addView(dot4, params);
 
         whiteDot = findViewById(R.id.white_dot);
         whiteDot.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                mDistance = ll.getChildAt(1).getLeft() - ll.getChildAt(0).getLeft();
+                mDistance = lLayout.getChildAt(1).getLeft() - lLayout.getChildAt(0).getLeft();
                 whiteDot.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
