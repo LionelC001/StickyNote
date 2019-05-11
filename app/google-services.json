@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "12861038846-777u43ej1uqkp8pf6s66uck5vt1hi1mp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lionel.stickynote",
+            "certificate_hash": "af0c5a78d1a4afdbe00b27884954d096ed50fd4f"
+          }
+        },
+        {
+          "client_id": "12861038846-q9ce8ngk6kvs82vmipv2uqik45b0hvp4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lionel.stickynote",
+            "certificate_hash": "5194a12e902b64eb56959507bfbe6e50ddac9b26"
+          }
+        },
+        {
           "client_id": "12861038846-85mbijboqj14u9tbc38ibt6m22s9pmc8.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -33,20 +49,13 @@
         }
       ],
       "services": {
-        "analytics_service": {
-          "status": 1
-        },
         "appinvite_service": {
-          "status": 2,
           "other_platform_oauth_client": [
             {
               "client_id": "12861038846-pmg5dfqg0urt984frn46jcokdfsrah1t.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
-        },
-        "ads_service": {
-          "status": 2
         }
       }
     }

@@ -65,7 +65,7 @@ public class FirebaseCloudHelper {
         List<AuthUI.IdpConfig> providers = Arrays.asList(
                 new AuthUI.IdpConfig.EmailBuilder().build(),
                 new AuthUI.IdpConfig.GoogleBuilder().build(),
-                new AuthUI.IdpConfig.Builder(AuthUI.FACEBOOK_PROVIDER).build());
+                new AuthUI.IdpConfig.FacebookBuilder().build());
 
         mActivity.startActivityForResult(
                 AuthUI.getInstance()
