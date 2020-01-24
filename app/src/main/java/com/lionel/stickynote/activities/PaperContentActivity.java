@@ -1,6 +1,8 @@
 package com.lionel.stickynote.activities;
 
 import android.app.Dialog;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -24,12 +26,15 @@ import android.widget.TableRow;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.lionel.stickynote.MyApplication;
 import com.lionel.stickynote.R;
 import com.lionel.stickynote.adapter.RecyclerContentListAdapter;
-import com.lionel.stickynote.views.ColorPickerBlock;
+import com.lionel.stickynote.appwidget.AppWidgetProvider;
 import com.lionel.stickynote.fieldclass.PaperProperty;
 import com.lionel.stickynote.helper.PaperContentDbHelper;
 import com.lionel.stickynote.helper.SimpleItemTouchHelper;
+import com.lionel.stickynote.preference.PreferencesUtil;
+import com.lionel.stickynote.views.ColorPickerBlock;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
@@ -57,7 +62,7 @@ public class PaperContentActivity extends AppCompatActivity {
     private String[][] mColorForeground = {{"#AFFFFFFF", "#AF00ced1"}, {"#AFFCD517", "#AFFE7D1A"}, {"#AFfcd0ab", "#AFFF3535"}};
 
     // Color for StatusBar, RootView, Title, FloatingActionButtonChild, ItemBG, ItemIndex, ItemText
-    private String[][] mColorTheme = {
+    public static final String[][] COLOR_THEMES = {
             {"#FF5C5B5B", "#E1626262", "#FF000000", "#00FFFFFF", "#AFFFFFFF", "#FF000000", "#FF000000"},
             {"#DABA236D", "#E1efb2d0", "#DA720038", "#FF9B6C83", "#AF00ced1", "#DAA10050", "#DA620131"},
             {"#FF99C400", "#E1B1D434", "#D63F5000", "#C979A135", "#AFFCD517", "#FF5C7500", "#D63F5000"},
@@ -103,7 +108,7 @@ public class PaperContentActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        mRecyclerAdapter = new RecyclerContentListAdapter(mContentItemList, mColorTheme[mThemeIndex][4], mColorTheme[mThemeIndex][5], mColorTheme[mThemeIndex][6]);
+        mRecyclerAdapter = new RecyclerContentListAdapter(mContentItemList, COLOR_THEMES[mThemeIndex][4], COLOR_THEMES[mThemeIndex][5], COLOR_THEMES[mThemeIndex][6]);
         RecyclerView mRecyclerViewContentList = findViewById(R.id.recyclerContentList);
         mRecyclerViewContentList.setAdapter(mRecyclerAdapter);
         mRecyclerViewContentList.setLayoutManager(new LinearLayoutManager(this));
@@ -143,6 +148,16 @@ public class PaperContentActivity extends AppCompatActivity {
         super.onPause();
         saveContentToSQLite();
         savePropertyToSP();
+        updateAppWidget();
+    }
+
+    private void updateAppWidget() {
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(MyApplication.getContext());
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(MyApplication.getContext(), AppWidgetProvider.class));
+        Intent intent = new Intent(this, AppWidgetProvider.class);
+        intent.setAction("android.appwidget.action.APPWIDGET_UPDATE");
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+        sendBroadcast(intent);
     }
 
     @Override
@@ -186,7 +201,7 @@ public class PaperContentActivity extends AppCompatActivity {
                 int ppIndex = mPaperPropertyArrayList.indexOf(pp);
                 mPaperProperty.setTitle(mEdtContentTitle.getText().toString());
                 mPaperProperty.setContent(contentTop4);
-                mPaperProperty.setBackgroundColor(mColorTheme[mThemeIndex][1]);
+                mPaperProperty.setBackgroundColor(COLOR_THEMES[mThemeIndex][1]);
                 mPaperPropertyArrayList.set(ppIndex, mPaperProperty);
                 break;
             }
@@ -262,32 +277,33 @@ public class PaperContentActivity extends AppCompatActivity {
     private void setColorTheme(int index) {
         mThemeIndex = index;
         // set StatusBar's color
-        getWindow().setStatusBarColor(Color.parseColor(mColorTheme[mThemeIndex][0]));
+        getWindow().setStatusBarColor(Color.parseColor(COLOR_THEMES[mThemeIndex][0]));
 
         // set background color
-        findViewById(R.id.contentRootView).setBackgroundColor(Color.parseColor(mColorTheme[mThemeIndex][1]));
+        findViewById(R.id.contentRootView).setBackgroundColor(Color.parseColor(COLOR_THEMES[mThemeIndex][1]));
 
         // set Title's text color
-        mEdtContentTitle.setTextColor(Color.parseColor(mColorTheme[mThemeIndex][2]));
+        mEdtContentTitle.setTextColor(Color.parseColor(COLOR_THEMES[mThemeIndex][2]));
 
         // set FloatingActionButtonChild's color
         ((FloatingActionButton) findViewById(R.id.btnAddItem))
-                .setColorNormal(Color.parseColor(mColorTheme[mThemeIndex][3]));
+                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
         ((FloatingActionButton) findViewById(R.id.btnClear))
-                .setColorNormal(Color.parseColor(mColorTheme[mThemeIndex][3]));
+                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
         ((FloatingActionButton) findViewById(R.id.btnChangeColor))
-                .setColorNormal(Color.parseColor(mColorTheme[mThemeIndex][3]));
+                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
         ((FloatingActionButton) findViewById(R.id.btnShare))
-                .setColorNormal(Color.parseColor(mColorTheme[mThemeIndex][3]));
+                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
         ((FloatingActionButton) findViewById(R.id.btnAppWidget))
-                .setColorNormal(Color.parseColor(mColorTheme[mThemeIndex][3]));
+                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
 
         // set Item's background, text, index color
         setupRecyclerView();
     }
 
     public void setOnAppWidget(View view) {
-
+        PreferencesUtil.setAppWidgetPageId(mPaperProperty.getPaperId());
+        updateAppWidget();
     }
 
     @Override
