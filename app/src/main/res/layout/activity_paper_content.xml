@@ -2,9 +2,9 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/contentRootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/contentRootView"
     android:focusable="true"
     android:focusableInTouchMode="true"
     tools:context=".activities.PaperContentActivity">
@@ -19,8 +19,8 @@
             android:id="@+id/edtContentTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
             android:backgroundTint="@android:color/transparent"
+            android:gravity="center_horizontal"
             android:hint="What's the title?"
             android:inputType="text"
             android:maxLines="1"
@@ -50,6 +50,15 @@
             app:fab_icon="@drawable/palette"
             app:fab_size="mini"
             app:fab_title="Change Color" />
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnAppWidget"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="setOnAppWidget"
+            app:fab_icon="@drawable/ic_widgets"
+            app:fab_size="mini"
+            app:fab_title="App Widget" />
 
         <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnShare"

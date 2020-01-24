@@ -279,9 +279,15 @@ public class PaperContentActivity extends AppCompatActivity {
                 .setColorNormal(Color.parseColor(mColorTheme[mThemeIndex][3]));
         ((FloatingActionButton) findViewById(R.id.btnShare))
                 .setColorNormal(Color.parseColor(mColorTheme[mThemeIndex][3]));
+        ((FloatingActionButton) findViewById(R.id.btnAppWidget))
+                .setColorNormal(Color.parseColor(mColorTheme[mThemeIndex][3]));
 
         // set Item's background, text, index color
         setupRecyclerView();
+    }
+
+    public void setOnAppWidget(View view) {
+
     }
 
     @Override
