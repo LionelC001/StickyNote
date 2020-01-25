@@ -49,6 +49,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.lionel.stickynote.BuildConfig;
 import com.lionel.stickynote.R;
 import com.lionel.stickynote.views.Paper;
 import com.lionel.stickynote.fieldclass.PaperProperty;
@@ -177,6 +178,8 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
             case R.id.menuItemAbout:
                 LayoutInflater layoutInflater = LayoutInflater.from(this);
                 View view = layoutInflater.inflate(R.layout.about_layout, null);
+                TextView txtVersion = view.findViewById(R.id.txtVersion);
+                txtVersion.setText(BuildConfig.VERSION_NAME);
                 new AlertDialog.Builder(this)
                         .setView(view)
                         .setCancelable(true)
