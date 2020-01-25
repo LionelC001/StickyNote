@@ -31,6 +31,7 @@
         </activity>
         <activity
             android:name=".activities.PaperContentActivity"
+            android:launchMode="singleTask"
             android:theme="@style/PaperContentTheme">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
@@ -55,8 +56,9 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".appwidget.AppWidgetRemoteViewsService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"/>
+        <service
+            android:name=".appwidget.AppWidgetRemoteViewsService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
 
 </manifest>

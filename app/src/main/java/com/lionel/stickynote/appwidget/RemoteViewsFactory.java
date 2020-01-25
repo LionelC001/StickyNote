@@ -3,7 +3,6 @@ package com.lionel.stickynote.appwidget;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
-import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
@@ -17,7 +16,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.lionel.stickynote.activities.PaperContentActivity.COLOR_THEMES;
+import static com.lionel.stickynote.PubConstant.COLOR_THEMES;
 import static com.lionel.stickynote.helper.PaperContentDbHelper.DB_NAME;
 import static com.lionel.stickynote.helper.PaperContentDbHelper.TABLE_NAME;
 

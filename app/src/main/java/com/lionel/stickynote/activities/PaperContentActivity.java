@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TableLayout;
 import android.widget.TableRow;
+import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
@@ -39,7 +40,10 @@ import com.lionel.stickynote.views.ColorPickerBlock;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 
+import static com.lionel.stickynote.PubConstant.COLOR_THEMES;
+import static com.lionel.stickynote.PubConstant.KEY_PAPER_ID;
 import static com.lionel.stickynote.helper.PaperContentDbHelper.DB_NAME;
 import static com.lionel.stickynote.helper.PaperContentDbHelper.TABLE_NAME;
 
@@ -48,8 +52,6 @@ public class PaperContentActivity extends AppCompatActivity {
 
     private int mThemeIndex;
 
-    private PaperProperty mPaperProperty;
-    private ArrayList<PaperProperty> mPaperPropertyArrayList;
     private ArrayList<String> mContentItemList;
     private EditText mEdtContentTitle;
     private RecyclerContentListAdapter mRecyclerAdapter;
@@ -61,14 +63,7 @@ public class PaperContentActivity extends AppCompatActivity {
     private String[][] mColorBackground = {{"#AF626262", "#AFefb2d0"}, {"#D6B1D434", "#E08B468B"}, {"#AFff7500", "#DC0450FB"}};
     private String[][] mColorForeground = {{"#AFFFFFFF", "#AF00ced1"}, {"#AFFCD517", "#AFFE7D1A"}, {"#AFfcd0ab", "#AFFF3535"}};
 
-    // Color for StatusBar, RootView, Title, FloatingActionButtonChild, ItemBG, ItemIndex, ItemText
-    public static final String[][] COLOR_THEMES = {
-            {"#FF5C5B5B", "#E1626262", "#FF000000", "#00FFFFFF", "#AFFFFFFF", "#FF000000", "#FF000000"},
-            {"#DABA236D", "#E1efb2d0", "#DA720038", "#FF9B6C83", "#AF00ced1", "#DAA10050", "#DA620131"},
-            {"#FF99C400", "#E1B1D434", "#D63F5000", "#C979A135", "#AFFCD517", "#FF5C7500", "#D63F5000"},
-            {"#FF8F6D8F", "#E18B468B", "#FF000000", "#FFFFA763", "#AFFE7D1A", "#FF000000", "#FF000000"},
-            {"#FFCE6D1B", "#E1FF7500", "#F47B3E0B", "#E9E0C26F", "#AFfcd0ab", "#FF763702", "#FF763702"},
-            {"#FF002D92", "#E10450FB", "#FF002965", "#EEFF6D6D", "#AFFF3535", "#FF002965", "#FF002965"}};
+    private int selectedPaperId;
 
     // allow ColorPickerBlock to call this activity to make some color set
     private static class ColorPickerHandler extends Handler {
@@ -92,16 +87,14 @@ public class PaperContentActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_paper_content);
-        mPaperProperty = (PaperProperty) getIntent().getExtras().getSerializable("PaperProperty");
-        mPaperPropertyArrayList = (ArrayList<PaperProperty>) getIntent().getExtras().getSerializable("PaperPropertyList");
+        selectedPaperId = getIntent().getIntExtra(KEY_PAPER_ID, 0);
         mContentItemList = new ArrayList<>();
         mEdtContentTitle = findViewById(R.id.edtContentTitle);
-
         setupDB();
     }
 
     private void setupDB() {
-        paper_name = "Paper" + mPaperProperty.getPaperId();
+        paper_name = "Paper" + selectedPaperId;
         mPaperContentDbHelper = new PaperContentDbHelper(getApplicationContext(),
                 DB_NAME, null, 1);
         mPaperContentDbHelper.createTable();
@@ -148,6 +141,11 @@ public class PaperContentActivity extends AppCompatActivity {
         super.onPause();
         saveContentToSQLite();
         savePropertyToSP();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
         updateAppWidget();
     }
 
@@ -196,13 +194,16 @@ public class PaperContentActivity extends AppCompatActivity {
         }
 
         // update PropertyArrayList
-        for (PaperProperty pp : mPaperPropertyArrayList) {
-            if (pp.getPaperId() == mPaperProperty.getPaperId()) {
-                int ppIndex = mPaperPropertyArrayList.indexOf(pp);
-                mPaperProperty.setTitle(mEdtContentTitle.getText().toString());
-                mPaperProperty.setContent(contentTop4);
-                mPaperProperty.setBackgroundColor(COLOR_THEMES[mThemeIndex][1]);
-                mPaperPropertyArrayList.set(ppIndex, mPaperProperty);
+        List<PaperProperty> listPaperProperty = PreferencesUtil.getListPaperProperty();
+        PaperProperty selectPaper = PreferencesUtil.getPaperProperty(selectedPaperId);
+        selectPaper.setTitle(mEdtContentTitle.getText().toString());
+        selectPaper.setContent(contentTop4);
+        selectPaper.setBackgroundColor(COLOR_THEMES[mThemeIndex][1]);
+
+        for (PaperProperty pp : listPaperProperty) {
+            if (pp.getPaperId() == selectedPaperId) {
+                int ppIndex = listPaperProperty.indexOf(pp);
+                listPaperProperty.set(ppIndex, selectPaper);
                 break;
             }
         }
@@ -210,7 +211,7 @@ public class PaperContentActivity extends AppCompatActivity {
         SharedPreferences.Editor sharedPreferences =
                 getSharedPreferences("MainData", MODE_PRIVATE).edit();
         Gson gson = new Gson();
-        String json = gson.toJson(mPaperPropertyArrayList);
+        String json = gson.toJson(listPaperProperty);
         sharedPreferences.putString("PaperProperty", json);
         sharedPreferences.apply();
     }
@@ -302,7 +303,8 @@ public class PaperContentActivity extends AppCompatActivity {
     }
 
     public void setOnAppWidget(View view) {
-        PreferencesUtil.setAppWidgetPageId(mPaperProperty.getPaperId());
+        PreferencesUtil.setAppWidgetPageId(selectedPaperId);
+        Toast.makeText(this, "Already Changed", Toast.LENGTH_SHORT).show();
         updateAppWidget();
     }
 

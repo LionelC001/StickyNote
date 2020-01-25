@@ -51,10 +51,10 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.lionel.stickynote.BuildConfig;
 import com.lionel.stickynote.R;
-import com.lionel.stickynote.views.Paper;
 import com.lionel.stickynote.fieldclass.PaperProperty;
 import com.lionel.stickynote.helper.FirebaseCloudHelper;
 import com.lionel.stickynote.helper.PaperContentDbHelper;
+import com.lionel.stickynote.views.Paper;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
 
@@ -63,6 +63,7 @@ import java.io.FileNotFoundException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
+import static com.lionel.stickynote.PubConstant.KEY_PAPER_ID;
 import static com.lionel.stickynote.helper.PaperContentDbHelper.DB_NAME;
 
 
@@ -392,10 +393,7 @@ public class MainActivity extends AppCompatActivity implements Paper.DeletePaper
         // then PaperContentActivity can save/load content into/from SharedPreference with specific name like "IdXItemO"
         // passing Property to ContentActivity,
         // so can save title and Top 4 content to the specific paper property.
-        Bundle bundle = new Bundle();
-        bundle.putSerializable("PaperProperty", pp);
-        bundle.putSerializable("PaperPropertyList", mPaperPropertyArrayList);
-        intent.putExtras(bundle);
+        intent.putExtra(KEY_PAPER_ID, pp.getPaperId());
         startActivityForResult(intent, REQUEST_CODE_FOR_OPEN_CONTENT, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
     }
 

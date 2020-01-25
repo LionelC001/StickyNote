@@ -12,11 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.Context.MODE_PRIVATE;
+import static com.lionel.stickynote.PubConstant.KEY_APP_WIDGET_PAGE_ID;
 
 public final class PreferencesUtil {
-    public static final String KEY_APP_WIDGET_PAGE_ID = "app_widget_page_id";
     private static final String KEY_LIST_PAPER_PROPERTY = "PaperProperty";
-
 
     private static SharedPreferences sharedPreferences;
 
@@ -40,7 +39,7 @@ public final class PreferencesUtil {
     }
 
     public static List<PaperProperty> getListPaperProperty() {
-        String json = sharedPreferences.getString(KEY_LIST_PAPER_PROPERTY, null);
+        String json = getInstance().getString(KEY_LIST_PAPER_PROPERTY, null);
         if (json != null) {
             Type type = new TypeToken<List<PaperProperty>>() {
             }.getType();
