@@ -19,19 +19,21 @@ import com.lionel.stickynote.helper.SimpleItemTouchHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class RecyclerContentListAdapter extends RecyclerView.Adapter<RecyclerContentListAdapter.MyViewHolder>
         implements SimpleItemTouchHelper.ItemMoveDismissInterface {
 
     private String mItemBGColor, mItemIndexColor, mItemTextColor;
-    private ArrayList<String> mContentItemList;
+    private List<String> mContentItemList;
     private Context mContext;
 
-    public RecyclerContentListAdapter(ArrayList<String> contentItemList, String itemBG, String itemIndex, String itemText) {
+    public void setData(List<String> contentItemList, String itemBG, String itemIndex, String itemText) {
         mContentItemList = contentItemList;
         mItemBGColor = itemBG;
         mItemIndexColor = itemIndex;
         mItemTextColor = itemText;
+        notifyDataSetChanged();
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder {

@@ -52,7 +52,7 @@ public class PaperContentActivity extends AppCompatActivity {
 
     private int mThemeIndex;
 
-    private ArrayList<String> mContentItemList;
+    private List<String> mContentItemList = new ArrayList<>();
     private EditText mEdtContentTitle;
     private RecyclerContentListAdapter mRecyclerAdapter;
     private String paper_name;
@@ -88,20 +88,23 @@ public class PaperContentActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_paper_content);
         selectedPaperId = getIntent().getIntExtra(KEY_PAPER_ID, 0);
-        mContentItemList = new ArrayList<>();
         mEdtContentTitle = findViewById(R.id.edtContentTitle);
+
+        setupRecyclerView();
         setupDB();
+        setupDataInfo();
     }
 
-    private void setupDB() {
-        paper_name = "Paper" + selectedPaperId;
-        mPaperContentDbHelper = new PaperContentDbHelper(getApplicationContext(),
-                DB_NAME, null, 1);
-        mPaperContentDbHelper.createTable();
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        selectedPaperId = intent.getIntExtra(KEY_PAPER_ID, 0);
+
+        setupDataInfo();
     }
 
     private void setupRecyclerView() {
-        mRecyclerAdapter = new RecyclerContentListAdapter(mContentItemList, COLOR_THEMES[mThemeIndex][4], COLOR_THEMES[mThemeIndex][5], COLOR_THEMES[mThemeIndex][6]);
+        mRecyclerAdapter = new RecyclerContentListAdapter();
         RecyclerView mRecyclerViewContentList = findViewById(R.id.recyclerContentList);
         mRecyclerViewContentList.setAdapter(mRecyclerAdapter);
         mRecyclerViewContentList.setLayoutManager(new LinearLayoutManager(this));
@@ -112,9 +115,13 @@ public class PaperContentActivity extends AppCompatActivity {
         itemTouchHelper.attachToRecyclerView(mRecyclerViewContentList);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+    private void setupDB() {
+        mPaperContentDbHelper = new PaperContentDbHelper(getApplicationContext(), DB_NAME, null, 1);
+        mPaperContentDbHelper.createTable();
+    }
+
+    private void setupDataInfo() {
+        paper_name = "Paper" + selectedPaperId;
         mCursor = mPaperContentDbHelper.query(TABLE_NAME, null, "paper_name=?", new String[]{paper_name}, null, null, null);
         if (mCursor == null) return;
         if (mCursor.getCount() > 0) {
@@ -134,6 +141,33 @@ public class PaperContentActivity extends AppCompatActivity {
         }
         //set Color
         setColorTheme(mThemeIndex);
+    }
+
+    private void setColorTheme(int index) {
+        mThemeIndex = index;
+        // set StatusBar's color
+        getWindow().setStatusBarColor(Color.parseColor(COLOR_THEMES[mThemeIndex][0]));
+
+        // set background color
+        findViewById(R.id.contentRootView).setBackgroundColor(Color.parseColor(COLOR_THEMES[mThemeIndex][1]));
+
+        // set Title's text color
+        mEdtContentTitle.setTextColor(Color.parseColor(COLOR_THEMES[mThemeIndex][2]));
+
+        // set FloatingActionButtonChild's color
+        ((FloatingActionButton) findViewById(R.id.btnAddItem))
+                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
+        ((FloatingActionButton) findViewById(R.id.btnClear))
+                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
+        ((FloatingActionButton) findViewById(R.id.btnChangeColor))
+                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
+        ((FloatingActionButton) findViewById(R.id.btnShare))
+                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
+        ((FloatingActionButton) findViewById(R.id.btnAppWidget))
+                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
+
+        // set Item's background, text, index color
+        mRecyclerAdapter.setData(mContentItemList, COLOR_THEMES[mThemeIndex][4], COLOR_THEMES[mThemeIndex][5], COLOR_THEMES[mThemeIndex][6]);
     }
 
     @Override
@@ -273,33 +307,6 @@ public class PaperContentActivity extends AppCompatActivity {
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         mDialog.setCancelable(true);
         mDialog.show();
-    }
-
-    private void setColorTheme(int index) {
-        mThemeIndex = index;
-        // set StatusBar's color
-        getWindow().setStatusBarColor(Color.parseColor(COLOR_THEMES[mThemeIndex][0]));
-
-        // set background color
-        findViewById(R.id.contentRootView).setBackgroundColor(Color.parseColor(COLOR_THEMES[mThemeIndex][1]));
-
-        // set Title's text color
-        mEdtContentTitle.setTextColor(Color.parseColor(COLOR_THEMES[mThemeIndex][2]));
-
-        // set FloatingActionButtonChild's color
-        ((FloatingActionButton) findViewById(R.id.btnAddItem))
-                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
-        ((FloatingActionButton) findViewById(R.id.btnClear))
-                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
-        ((FloatingActionButton) findViewById(R.id.btnChangeColor))
-                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
-        ((FloatingActionButton) findViewById(R.id.btnShare))
-                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
-        ((FloatingActionButton) findViewById(R.id.btnAppWidget))
-                .setColorNormal(Color.parseColor(COLOR_THEMES[mThemeIndex][3]));
-
-        // set Item's background, text, index color
-        setupRecyclerView();
     }
 
     public void setOnAppWidget(View view) {
